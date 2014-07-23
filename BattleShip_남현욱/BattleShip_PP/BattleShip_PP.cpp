@@ -7,28 +7,27 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <list>
+#include "AirCraft.h"
 
-const char* strDestroy = "Destroy";
-const char* strHit = "Hit";
-const char* strMiss = "Miss";
+const std::string strDestroy = "Destroy";
+const std::string strHit = "Hit";
+const std::string strMiss = "Miss";
 
 int _tmain()
 {
-	std::string strinput;
+	/*std::string strinput;
 	std::string strResult[] = { strHit, strMiss, strDestroy };
-	int kind, i;
+	int kind;
 	int destroyedKind;
-	std::list<std::string> ships;
-	std::list<std::string> destroyedShips;
-	std::list<std::string> ::iterator it;
+	std::vector<std::string> ships;
+	std::vector<std::string> destroyedShips;
+
 	ships.push_back("Aircraft");
 	ships.push_back("Battleship");
 	ships.push_back("Cruiser");
 	ships.push_back("Destroyer");
 	ships.push_back("Destroyer");
-	ships.push_back("Destroyer");
-
+	
 	srand((unsigned int)time(NULL));
 
 	while (!ships.empty())
@@ -36,26 +35,47 @@ int _tmain()
 		std::cin >> strinput;
 		kind = rand() % _countof(strResult);
 		std::cout << strResult[kind];
+
 		if (strResult[kind] == strDestroy)
 		{
 			destroyedKind = rand() % ships.size();
+			
 			std::cout << " - ";
 			
-			for (i = 0, it = ships.begin(); i < destroyedKind; i++, it++);
+			destroyedShips.push_back(ships[destroyedKind]);
+			ships.erase(ships.begin() + destroyedKind);
 
-			destroyedShips.push_back(*it);
-			ships.erase(it);
-
-			for (it = destroyedShips.begin(); it != destroyedShips. end(); it++)
+			for (unsigned int i = 0; i < destroyedShips.size(); i++)
 			{
-				std::cout << *it << " ";
+				std::cout << destroyedShips[i] << " ";
 			}
 		}
 		std::cout << std::endl;
 	}
+
 	std::cout << "GAME OVER!" << std::endl;
+	
 	fflush(stdin);
+	getchar();*/
+	AirCraft ship;
+	Position p;
+
+	p.m_X = 'c';
+	p.m_Y = '3';
+	ship.AddPosition(p);
+	p.m_X = 'C';
+	ship.AddPosition(p);
+
+
+	if (ship.HitCheck(p) == (HitResult)HIT)
+	{
+		printf("HIT\n");
+	}
+
+	ship.Print();
+
 	getchar();
 
 	return 0;
 }
+
