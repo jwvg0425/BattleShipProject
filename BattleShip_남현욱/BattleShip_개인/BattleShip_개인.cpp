@@ -8,7 +8,7 @@
 int _tmain()
 {
 
-	//GameManager::GetInstance()->InitGame();
+	GameManager::GetInstance()->InitGame();
 	GameManager::GetInstance()->RunGame();
 	getchar();
 	return 0;

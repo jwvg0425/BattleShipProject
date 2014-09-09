@@ -39,10 +39,11 @@ Player::~Player()
 
 void Player::Init()
 {
-	m_PrevAttackPoint.x = 0;
-	m_PrevAttackPoint.y = 0;
+	m_PrevAttackPos.x = 0;
+	m_PrevAttackPos.y = 0;
 	m_AIState = AIState::SEARCH;
 	m_HitCount = 0;
+	m_AttackCount = 0;
 
 	for (auto& ship : m_ShipList)
 	{
@@ -55,44 +56,39 @@ void Player::Init()
 	m_NumOfEnemyShips[CRUISER] = ShipData::GetShipNum(CRUISER);
 	m_NumOfEnemyShips[DESTROYER] = ShipData::GetShipNum(DESTROYER);
 	m_DestroyData.clear();
-	InitFindPoints();
+	InitFindPos();
 }
 
 void Player::PlaceShips()
 {
 	Point randomPos;
 	Direction dir;
-	int startDx = 0, startDy = 0, dx = 0, dy = 0;
+	int dx = 0, dy = 0;
 
 	for (auto& ship : m_ShipList)
 	{
 		do
 		{
-			startDx = 0;
-			startDy = 0;
-
 			dir = (Direction)RANDOM(2);
 
 			if (dir == Direction::DOWN)
 			{
-				startDy = -ship->GetMaxHP();
 				dy = 1;
 				dx = 0;
 			}
 			else
 			{
-				startDx = -ship->GetMaxHP();
 				dx = 1;
 				dy = 0;
 			}
 
-			randomPos.x = 'a' + (char)RANDOM(BOARD_WIDTH + startDx);
-			randomPos.y = '1' + (char)RANDOM(BOARD_HEIGHT + startDy);
-		} while (!IsValidPlace(randomPos, dir, ship->GetMaxHP()));
+			randomPos.x = 'a' + (char)RANDOM(BOARD_WIDTH);
+			randomPos.y = '1' + (char)RANDOM(BOARD_HEIGHT);
+		} while (!m_MyBoard->IsValidPlace(randomPos, dir, ship->GetMaxHP()));
 
 		for (int i = 0; i < ship->GetMaxHP(); i++)
 		{
-			m_MyBoard->SetBoardState(randomPos, SHIP_STATE);
+			m_MyBoard->SetCellState(randomPos, SHIP_STATE);
 			ship->AddPosition(randomPos);
 			randomPos.x += (char)dx;
 			randomPos.y += (char)dy;
@@ -100,36 +96,7 @@ void Player::PlaceShips()
 	}
 }
 
-bool Player::IsValidPlace(Point pos, Direction dir, int length)
-{
-	int dx = 0, dy = 0;
 
-	if (dir == Direction::DOWN)
-	{
-		dx = 0;
-		dy = 1;
-	}
-	else
-	{
-		dx = 1;
-		dy = 0;
-	}
-
-
-	for (int i = 0; i < length; i++)
-	{
-		if (m_MyBoard->GetBoardState(pos) != BoardState::NONE_STATE ||
-			m_MyBoard->GetAloneGrade(pos)<4)
-		{
-			return false;
-		}
-
-		pos.x += (char)dx;
-		pos.y += (char)dy;
-	}
-
-	return true;
-}
 
 HitResult Player::SendAttackResult(Point pos)
 {
@@ -144,6 +111,8 @@ HitResult Player::SendAttackResult(Point pos)
 		}
 	}
 
+	m_AttackCount++;
+
 	return HitResult::MISS;
 }
 
@@ -151,20 +120,20 @@ void Player::RecieveAttackResult(Point pos, HitResult res)
 {
 	if (res == MISS)
 	{
-		m_EnemyBoard->SetBoardState(pos, BoardState::MISS_STATE);
+		m_EnemyBoard->SetCellState(pos, BoardState::MISS_STATE);
 	}
 	else
 	{
-		m_EnemyBoard->SetBoardState(pos, BoardState::HIT_STATE);
+		m_EnemyBoard->SetCellState(pos, BoardState::HIT_STATE);
 	}
 
 	if (res > DESTROY)
 	{
-		m_NumOfEnemyShips[ShipData::GetShipType(res)]--;
 		m_DestroyData[pos] = res;
+		m_NumOfEnemyShips[ShipData::GetShipType(res)]--;
 	}
 	
-	m_PrevAttackPoint = pos;
+	m_PrevAttackPos = pos;
 
 	ChangeAIState(res);
 }
@@ -181,38 +150,6 @@ bool Player::IsDead()
 	return (playerHP == 0);
 }
 
-int Player::GetHitSize(Point pos, Direction dir)
-{
-	int size = 0;
-
-	while (m_EnemyBoard->GetBoardState(pos) == HIT_STATE)
-	{
-		size++;
-		pos.ChangeByDir(dir);
-	}
-
-	return size;
-}
-
-int Player::GetMaxHitSize(Point pos, Direction dir)
-{
-	int size;
-	Point head = pos, tail = pos;
-
-	while (m_EnemyBoard->GetBoardState(head) == HIT_STATE)
-	{
-		head.ChangeByDir(dir);
-	}
-	while (m_EnemyBoard->GetBoardState(tail) == HIT_STATE)
-	{
-		tail.ChangeByDir((Direction)((dir + 2) % 4));
-	}
-
-	size = abs(head.x - tail.x + head.y - tail.y - 1);
-
-	return size;
-}
-
 void Player::PrintShipData()
 {
 	for (auto& ship : m_ShipList)
@@ -226,66 +163,140 @@ void Player::PrintEnemyBoardData()
 	m_EnemyBoard->Print();
 }
 
-int Player::GetLengthToNotNoneCell(Point pos, Direction dir)
+void Player::GetPriorityPos(std::vector<Point>& posList, int number)
 {
-	int size = 0;
+	int priorityBoard[BOARD_WIDTH + 2][BOARD_HEIGHT + 2][5];
 
-	pos.ChangeByDir(dir);
-	while (m_EnemyBoard->GetBoardState(pos) == NONE_STATE)
+	for (auto& cols : priorityBoard)
 	{
-		size++;
-		pos.ChangeByDir(dir);
-	}
-	return size;
-}
-
-bool Player::IsValidAttackStartPos(Point pos)
-{
-	int size = 0;
-
-	for (int i = 0; i < 4; i++)
-	{
-		if (m_NumOfEnemyShips[i]>0)
+		for(auto& cell : cols)
 		{
-			size = ShipData::GetShipSize((ShipType)i);
-			break;
+			for (auto& data : cell)
+			{
+				data = 0;
+			}
 		}
 	}
 
-	if (GetPossibleAttackRange(pos)>=size)
+	for (int x = 1; x <= BOARD_WIDTH; x++)
 	{
-		return true;
+		for (int y = 1; y <= BOARD_HEIGHT; y++)
+		{
+			if (m_EnemyBoard->GetCellState(Point(x -1 + 'a', y -1 + '1')) != NONE_STATE)
+			{
+				priorityBoard[x][y][4] = -1;
+			}
+		}
 	}
 
-	return false;
-}
+	int weight,weight2;
 
-int Player::GetPossibleAttackRange(Point pos)
-{
-	int maxSize = 0;
-
-	for (Direction dir = DOWN; dir <= RIGHT; dir = (Direction)(dir + 1))
+	//left->right, right->left
+	for (int y = 1; y <= BOARD_HEIGHT; y++)
 	{
-		Point rangePos = pos;
-		int size = 0;
-
-		while (m_EnemyBoard->GetBoardState(rangePos) == NONE_STATE ||
-			m_EnemyBoard->GetBoardState(rangePos) == HIT_STATE)
+		weight = 1;
+		weight2 = 1;
+		for (int x = 1; x <= BOARD_WIDTH; x++)
 		{
-			size++;
-			rangePos.ChangeByDir(dir);
-		}
+			if (priorityBoard[x][y][4] == -1)
+			{
+				weight = 1;
+			}
+			else
+			{
+				priorityBoard[x][y][RIGHT] = weight;
+				weight++;
+			}
 
-		rangePos = pos;
-		while (m_EnemyBoard->GetBoardState(rangePos) == NONE_STATE ||
-			m_EnemyBoard->GetBoardState(rangePos) == HIT_STATE)
-		{
-			size++;
-			rangePos.ChangeByDir((Direction)((dir + 2) % 4));
+			if (priorityBoard[BOARD_WIDTH - x + 1][y][4] == -1)
+			{
+				weight2 = 1;
+			}
+			else
+			{
+				priorityBoard[BOARD_WIDTH - x + 1][y][LEFT] = weight2;
+				weight2++;
+			}
 		}
-		if (size > maxSize)maxSize = size;
 	}
 
-	return maxSize - 1;
-}
+	//up->down, down->up
+	for (int x = 1; x <= BOARD_WIDTH; x++)
+	{
+		weight = 1;
+		weight2 = 1;
+		for (int y = 1; y <= BOARD_HEIGHT; y++)
+		{
+			if (priorityBoard[x][y][4] == -1)
+			{
+				weight = 1;
+			}
+			else
+			{
+				priorityBoard[x][y][DOWN] = weight;
+				weight++;
+			}
 
+			if (priorityBoard[x][BOARD_HEIGHT - y + 1][4] == -1)
+			{
+				weight2 = 1;
+			}
+			else
+			{
+				priorityBoard[x][BOARD_HEIGHT - y + 1][UP] = weight2;
+				weight2++;
+			}
+		}
+	}
+
+	for (int x = 1; x <= BOARD_WIDTH; x++)
+	{
+		for (int y = 1; y <= BOARD_HEIGHT; y++)
+		{
+			if (priorityBoard[x][y][4] != -1)
+			{
+				priorityBoard[x][y][4] =
+					(priorityBoard[x][y][UP] + priorityBoard[x][y][DOWN] +
+					abs(priorityBoard[x][y][UP] - priorityBoard[x][y][DOWN]))*
+					(priorityBoard[x][y][LEFT] + priorityBoard[x][y][RIGHT] +
+					abs(priorityBoard[x][y][LEFT] - priorityBoard[x][y][RIGHT]));
+
+				
+				if (priorityBoard[x][y][4]>48)
+				{
+					if (RANDOM(5) != 0)
+					{
+						priorityBoard[x][y][4] = 53;
+					}
+					else
+					{
+						priorityBoard[x][y][4] = 47;
+					}
+				}
+				
+			}
+		}
+	}
+
+	for (int i = 0; i < number; i++)
+	{
+		Point maxPos = Point('a', '1');
+		for (int x = 1; x <= BOARD_WIDTH; x++)
+		{
+			for (int y = 1 + (x % 2); y <= BOARD_HEIGHT; y += 2)
+			{
+				if (
+					priorityBoard[maxPos.x - 'a' + 1][maxPos.y - '1' + 1][4]
+					< priorityBoard[x][y][4])
+				{
+					maxPos = Point('a' + x - 1, '1' + y - 1);
+				}
+			}
+		}
+		if (priorityBoard[maxPos.x - 'a' + 1][maxPos.y - '1' + 1][4] != -1)
+		{
+			posList.push_back(maxPos);
+			priorityBoard[maxPos.x - 'a' + 1][maxPos.y - '1' + 1][4] = -1;
+		}
+	}
+}

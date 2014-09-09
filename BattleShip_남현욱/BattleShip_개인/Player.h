@@ -14,7 +14,7 @@ public:
 	~Player();
 	void Init();
 	void PlaceShips();
-	Point GetNextAttackPoint();
+	Point GetNextAttackPos();
 	bool IsDead();
 
 	void RecieveAttackResult(Point pos, HitResult res);
@@ -27,26 +27,23 @@ private:
 	std::vector<Ship*> m_ShipList;
 	Board* m_MyBoard;
 	Board* m_EnemyBoard;
-	Point m_PrevAttackPoint;
-	Point m_AttackStartPoint;
+	Point m_PrevAttackPos;
+	Point m_AttackStartPos;
 	Direction m_AttackDir;
 	AIState m_AIState;
-	std::vector<Point> m_FindPoints[4];
-	std::vector<Point> m_SecondFindPoints[4];
+	std::vector<Point> m_FindPos[4];
+	std::vector<Point> m_SecondFindPos[4];
 	std::map<Point,HitResult> m_DestroyData;
 	int m_NumOfEnemyShips[4];
 	int m_HitCount;
-	bool IsValidPlace(Point pos, Direction dir, int length);
+	int m_AttackCount;
+	
 	void ChangeAIState(HitResult prevRes);
 	bool ChangeAttackDir();
-	bool IsValidAttackPos(Point pos);
-	void UpdateFindPoints();
-	void InitFindPoints();
-	void UpdateCellData();
-	Point GetHitCell(bool isFirst);
-	int GetHitSize(Point pos, Direction dir);
-	int GetMaxHitSize(Point pos, Direction dir);
-	int GetLengthToNotNoneCell(Point pos, Direction dir);
-	int GetPossibleAttackRange(Point pos);
-	bool IsValidAttackStartPos(Point pos);
+	
+	void UpdateFindPos();
+	void InitFindPos();
+
+	void GetPriorityPos(std::vector<Point>& posList, int number);
+	
 };

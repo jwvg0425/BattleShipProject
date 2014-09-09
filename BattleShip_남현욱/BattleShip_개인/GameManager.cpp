@@ -3,7 +3,7 @@
 #include "GameManager.h"
 #include "Player.h"
 #include "Macro.h"
-#define PRINT_DATA
+//#define PRINT_DATA
 
 GameManager* GameManager::m_Instance = nullptr;
 
@@ -56,11 +56,14 @@ void GameManager::RunGame()
 
 	for (int i = 0; i < 1000; i++)
 	{
-		InitGame();
+		m_Player1->Init();
+		m_Player2->Init();
+		m_Player2->PlaceShips();
+		m_Turn = 0;
+		
 		Point AttackPos;
 		HitResult HitRes;
-		int HitNum = 0;
-
+		
 #ifdef PRINT_DATA
 		system("cls");
 		m_Player2->PrintShipData();
@@ -71,7 +74,7 @@ void GameManager::RunGame()
 		
 		while (!m_Player2->IsDead())
 		{
-			AttackPos = m_Player1->GetNextAttackPoint();
+			AttackPos = m_Player1->GetNextAttackPos();
 			HitRes = m_Player2->SendAttackResult(AttackPos);
 			m_Player1->RecieveAttackResult(AttackPos, HitRes);
 			m_Turn++;
@@ -88,9 +91,8 @@ void GameManager::RunGame()
 
 		if (m_Turn > maxTurn)maxTurn = m_Turn;
 		if (m_Turn < minTurn)minTurn = m_Turn;
-		
-
+	
 	}
 	
-	printf("average : %d.%03d max : %d min : %d\n", totalTurn / 1000, totalTurn % 1000, maxTurn, minTurn);
+	printf("average : %d.%03d max : %d min : %d \n", totalTurn / 1000, totalTurn % 1000, maxTurn, minTurn);
 }
