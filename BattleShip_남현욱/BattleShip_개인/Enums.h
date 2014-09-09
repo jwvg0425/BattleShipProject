@@ -1,0 +1,47 @@
+﻿#pragma once
+
+
+enum HitResult
+{
+	MISS,
+	HIT,
+	DESTROY,
+
+	DESTROY_AIRCRAFT,
+	DESTROY_BATTLESHIP,
+	DESTROY_CRUISER,
+	DESTROY_DESTROYER,
+};
+
+enum BoardState
+{
+	NONE_STATE,
+	SHIP_STATE,
+	MISS_STATE,
+	HIT_STATE,
+	DESTROY_STATE,
+	ERROR_STATE = -1,
+};
+
+enum ShipType
+{
+	DESTROYER,
+	CRUISER,
+	BATTLESHIP,
+	AIRCRAFT,
+};
+
+
+enum Direction
+{
+	DOWN,
+	RIGHT,
+	UP,
+	LEFT,
+};
+
+enum AIState
+{
+	SEARCH,
+	HUNT,
+};
