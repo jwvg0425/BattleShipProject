@@ -193,6 +193,7 @@ void Board::UpdateCellData(std::map<Point, HitResult>& destroyDataList, int* num
 		completePoints.clear();
 	}
 
+	
 	for (int x = 0; x < BOARD_WIDTH; x++)
 	{
 		for (int y = 0; y < BOARD_HEIGHT; y++)
@@ -207,6 +208,7 @@ void Board::UpdateCellData(std::map<Point, HitResult>& destroyDataList, int* num
 			}
 		}
 	}
+	
 }
 
 int Board::GetHitSize(Point pos, Direction dir)
@@ -336,11 +338,11 @@ bool Board::IsValidPlace(Point pos, Direction dir, int length)
 
 Point Board::GetHitCell(bool isFirst)
 {
-	static Point prevHitCell = Point('a', '1');
+	static Point prevHitCell = Point('a', '0');
 
 	if (isFirst)
 	{
-		prevHitCell = Point('a', '1');
+		prevHitCell = Point('a', '0');
 	}
 
 	for (int x = prevHitCell.x - 'a'; x < BOARD_WIDTH; x++)

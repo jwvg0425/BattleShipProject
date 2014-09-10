@@ -12,47 +12,37 @@ Point Player::GetNextAttackPos()
 	int idx;
 	Point attackPos;
 
+	
+
 	if (m_AIState == AIState::SEARCH)
 	{
+		
+
 		UpdateFindPos();
-		std::vector<Point> posList;
-		GetPriorityPos(posList, 6);
 
-		do
-		{	
-			attackPos.x = 'a' + RANDOM(BOARD_WIDTH);
-			attackPos.y = '1' + RANDOM(BOARD_HEIGHT);
-
-			if (!posList.empty())
+		if (m_AttackCount < 64)
+		{
+			for (int i = 0; i < 4; i++)
 			{
-				idx = RANDOM(posList.size());
-				attackPos = posList[idx];
-			}
-			
-			if (m_AttackCount<16)
-			{
-				for (int i = 0; i < 4; i++)
+				if (!m_SecondFindPos[i].empty())
 				{
-					if (!m_SecondFindPos[i].empty())
-					{
-						idx = RANDOM(m_SecondFindPos[i].size());
-						attackPos = m_SecondFindPos[i][idx];
-						break;
-					}
-				}
-
-				for (int i = 0; i < 4; i++)
-				{
-					if (!m_FindPos[i].empty())
-					{
-						idx = RANDOM(m_FindPos[i].size());
-						attackPos = m_FindPos[i][idx];
-						break;
-					}
+					idx = RANDOM(m_SecondFindPos[i].size());
+					attackPos = m_SecondFindPos[i][idx];
+					break;
 				}
 			}
 
-		} while (!m_EnemyBoard->IsValidAttackPos(attackPos));
+			for (int i = 0; i < 4; i++)
+			{
+				if (!m_FindPos[i].empty())
+				{
+					idx = RANDOM(m_FindPos[i].size());
+					attackPos = m_FindPos[i][idx];
+					break;
+				}
+			}
+		}
+		
 	}
 	else if (m_AIState == AIState::HUNT)
 	{
@@ -69,7 +59,19 @@ void Player::ChangeAIState(HitResult prevRes)
 	m_EnemyBoard->UpdateCellData(m_DestroyData,m_NumOfEnemyShips);
 	
 	if (prevRes > HitResult::DESTROY)
-	{	
+	{
+		if (m_EnemyBoard->GetCellState(m_AttackStartPos) != DESTROY_STATE)
+		{
+			if (ChangeAttackDir())
+			{
+				m_PrevAttackPos = m_AttackStartPos;
+				m_AIState = HUNT;
+				prevRes = HIT;
+				m_HitCount = 0;
+				return;
+			}
+		}
+
 		Point hitPos = m_EnemyBoard->GetHitCell(true);
 		if (hitPos.x != 0)
 		{
@@ -77,29 +79,22 @@ void Player::ChangeAIState(HitResult prevRes)
 			prevRes = HIT;
 			m_HitCount = 0;
 
-			if (m_EnemyBoard->GetCellState(m_AttackStartPos) != DESTROY_STATE)
+			do
 			{
-				m_PrevAttackPos = m_AttackStartPos;
-			}
-			else
-			{
-				do
+				if (hitPos.x == 0)
 				{
-					if (hitPos.x == 0)
-					{
-						prevRes = MISS;
-						m_AIState = SEARCH;
-						break;
-					}
-					m_PrevAttackPos = hitPos;
-					m_AttackStartPos = hitPos;
-					hitPos = m_EnemyBoard->GetHitCell(false);
-				} while (!ChangeAttackDir());	
-			}
-			
-			ChangeAttackDir();
+					prevRes = MISS;
+					m_AIState = SEARCH;
+					break;
+				}
+				m_PrevAttackPos = hitPos;
+				m_AttackStartPos = hitPos;
+				hitPos = m_EnemyBoard->GetHitCell(false);
+			} while (!ChangeAttackDir());
+
 			return;
 		}
+
 	}
 
 	switch (m_AIState)
@@ -175,10 +170,21 @@ bool Player::ChangeAttackDir()
 {
 	int maxLength = 0;
 	int length;
+	int minSize;
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (m_NumOfEnemyShips[i]>0)
+		{
+			minSize = ShipData::GetShipSize((ShipType)i);
+			break;
+		}
+	}
 
 	for (Direction dir = DOWN; dir <= LEFT; dir = (Direction)(dir + 1))
 	{
 		length = m_EnemyBoard->GetLengthToNotNoneCell(m_AttackStartPos, dir);
+
 		if (length > maxLength)
 		{
 			maxLength = length;
@@ -191,6 +197,8 @@ bool Player::ChangeAttackDir()
 		return false;
 	}
 	return true;
+
+	
 }
 
 void Player::UpdateFindPos()

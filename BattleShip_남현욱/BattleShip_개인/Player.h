@@ -43,7 +43,5 @@ private:
 	
 	void UpdateFindPos();
 	void InitFindPos();
-
-	void GetPriorityPos(std::vector<Point>& posList, int number);
 	
 };
