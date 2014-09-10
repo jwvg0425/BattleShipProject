@@ -12,7 +12,7 @@ class Player
 public:
 	Player();
 	~Player();
-	void Init();
+	void Init(bool isReset);
 	void PlaceShips();
 	Point GetNextAttackPos();
 	bool IsDead();
@@ -22,6 +22,9 @@ public:
 
 	void PrintShipData();
 	void PrintEnemyBoardData();
+	std::vector<Point> m_FindPos[5];
+	std::vector<Point> m_SecondFindPos[5];
+	std::vector<Point> m_GameData[1000];
 
 private:
 	std::vector<Ship*> m_ShipList;
@@ -31,12 +34,12 @@ private:
 	Point m_AttackStartPos;
 	Direction m_AttackDir;
 	AIState m_AIState;
-	std::vector<Point> m_FindPos[4];
-	std::vector<Point> m_SecondFindPos[4];
+	
 	std::map<Point,HitResult> m_DestroyData;
 	int m_NumOfEnemyShips[4];
 	int m_HitCount;
 	int m_AttackCount;
+	int m_GameCount;
 	
 	void ChangeAIState(HitResult prevRes);
 	bool ChangeAttackDir();

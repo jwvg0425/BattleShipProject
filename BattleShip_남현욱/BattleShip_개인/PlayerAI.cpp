@@ -16,13 +16,11 @@ Point Player::GetNextAttackPos()
 
 	if (m_AIState == AIState::SEARCH)
 	{
-		
-
 		UpdateFindPos();
 
 		if (m_AttackCount < 64)
 		{
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < 5; i++)
 			{
 				if (!m_SecondFindPos[i].empty())
 				{
@@ -32,7 +30,8 @@ Point Player::GetNextAttackPos()
 				}
 			}
 
-			for (int i = 0; i < 4; i++)
+
+			for (int i = 0; i < 5; i++)
 			{
 				if (!m_FindPos[i].empty())
 				{
@@ -42,7 +41,6 @@ Point Player::GetNextAttackPos()
 				}
 			}
 		}
-		
 	}
 	else if (m_AIState == AIState::HUNT)
 	{
@@ -170,20 +168,12 @@ bool Player::ChangeAttackDir()
 {
 	int maxLength = 0;
 	int length;
-	int minSize;
 
-	for (int i = 0; i < 4; i++)
-	{
-		if (m_NumOfEnemyShips[i]>0)
-		{
-			minSize = ShipData::GetShipSize((ShipType)i);
-			break;
-		}
-	}
-
+	int value;
 	for (Direction dir = DOWN; dir <= LEFT; dir = (Direction)(dir + 1))
 	{
 		length = m_EnemyBoard->GetLengthToNotNoneCell(m_AttackStartPos, dir);
+
 
 		if (length > maxLength)
 		{
@@ -204,8 +194,50 @@ bool Player::ChangeAttackDir()
 void Player::UpdateFindPos()
 {
 	std::vector<Point>::iterator iter;
+	int gameDataBoard[BOARD_WIDTH][BOARD_HEIGHT] = { 0, };
+	bool isPossible;
+	int count = 0;
 
-	for (int i = 0; i < 4; i++)
+	m_FindPos[0].clear();
+	m_SecondFindPos[0].clear();
+
+	for (int i = 0; i<((m_GameCount>1000) ? 1000 : m_GameCount); i++)
+	{
+		isPossible = true;
+		for (int k = 0; k < m_GameData[i].size(); k++)
+		{
+			if (!(m_EnemyBoard->GetCellState(m_GameData[i][k]) == HIT_STATE ||
+				m_EnemyBoard->GetCellState(m_GameData[i][k]) == NONE_STATE ||
+				m_EnemyBoard->GetCellState(m_GameData[i][k]) == DESTROY_STATE))
+			{
+				isPossible = false;
+				break;
+			}
+		}
+		if (isPossible)
+		{
+			count++;
+			for (int k = 0; k < m_GameData[i].size(); k++)
+			{
+				gameDataBoard[m_GameData[i][k].x - 'a'][m_GameData[i][k].y - '1']++;
+			}
+		}
+	}
+	if (count != 0)
+	{
+		for (int x = 0; x < BOARD_WIDTH; x++)
+		{
+			for (int y = 0; y < BOARD_HEIGHT; y++)
+			{
+				if (gameDataBoard[x][y] * 100 / count >= 80)
+				{
+					m_FindPos[0].push_back(Point(x + 'a', y + '1'));
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < 5; i++)
 	{
 		if (m_FindPos[i].empty())
 			continue;
@@ -228,8 +260,8 @@ void Player::UpdateFindPos()
 			}
 		}
 	}
-
-	for (int i = 0; i < 4; i++)
+	
+	for (int i = 0; i < 5; i++)
 	{
 		if (m_SecondFindPos[i].empty())
 			continue;
@@ -251,48 +283,48 @@ void Player::UpdateFindPos()
 
 void Player::InitFindPos()
 {
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		m_FindPos[i].clear();
 	}
 
 	//type1
-	m_FindPos[0].push_back(Point('b', '2'));
-	m_FindPos[0].push_back(Point('b', '4'));
-	m_FindPos[0].push_back(Point('b', '6'));
-	m_FindPos[0].push_back(Point('c', '5'));
-	m_FindPos[0].push_back(Point('c', '7'));
-	m_FindPos[0].push_back(Point('d', '2'));
-	m_FindPos[0].push_back(Point('d', '4'));
-	m_FindPos[0].push_back(Point('e', '3'));
-	m_FindPos[0].push_back(Point('e', '5'));
-	m_FindPos[0].push_back(Point('e', '7'));
-	m_FindPos[0].push_back(Point('f', '2'));
-	m_FindPos[0].push_back(Point('f', '6'));
-	m_FindPos[0].push_back(Point('g', '3'));
-	m_FindPos[0].push_back(Point('g', '5'));
-	m_FindPos[0].push_back(Point('g', '7'));
+	m_FindPos[1].push_back(Point('b', '2'));
+	m_FindPos[1].push_back(Point('b', '4'));
+	m_FindPos[1].push_back(Point('b', '6'));
+	m_FindPos[1].push_back(Point('c', '5'));
+	m_FindPos[1].push_back(Point('c', '7'));
+	m_FindPos[1].push_back(Point('d', '2'));
+	m_FindPos[1].push_back(Point('d', '4'));
+	m_FindPos[1].push_back(Point('e', '3'));
+	m_FindPos[1].push_back(Point('e', '5'));
+	m_FindPos[1].push_back(Point('e', '7'));
+	m_FindPos[1].push_back(Point('f', '2'));
+	m_FindPos[1].push_back(Point('f', '6'));
+	m_FindPos[1].push_back(Point('g', '3'));
+	m_FindPos[1].push_back(Point('g', '5'));
+	m_FindPos[1].push_back(Point('g', '7'));
 
 
-	m_FindPos[1].push_back(Point('a', '3'));
-	m_FindPos[1].push_back(Point('a', '7'));
-	m_FindPos[1].push_back(Point('c', '1'));
-	m_FindPos[1].push_back(Point('d', '8'));
-	m_FindPos[1].push_back(Point('g', '1'));
-	m_FindPos[1].push_back(Point('h', '4'));
+	m_FindPos[2].push_back(Point('a', '3'));
+	m_FindPos[2].push_back(Point('a', '7'));
+	m_FindPos[2].push_back(Point('c', '1'));
+	m_FindPos[2].push_back(Point('d', '8'));
+	m_FindPos[2].push_back(Point('g', '1'));
+	m_FindPos[2].push_back(Point('h', '4'));
 
-	m_FindPos[2].push_back(Point('c', '3'));
-	m_FindPos[2].push_back(Point('d', '6'));
-	m_FindPos[2].push_back(Point('f', '4'));
+	m_FindPos[3].push_back(Point('c', '3'));
+	m_FindPos[3].push_back(Point('d', '6'));
+	m_FindPos[3].push_back(Point('f', '4'));
 
-	m_FindPos[3].push_back(Point('h', '8'));
-	m_FindPos[3].push_back(Point('a', '1'));
-	m_FindPos[3].push_back(Point('a', '5'));
-	m_FindPos[3].push_back(Point('b', '8'));
-	m_FindPos[3].push_back(Point('e', '1'));
-	m_FindPos[3].push_back(Point('f', '8'));
-	m_FindPos[3].push_back(Point('h', '2'));
-	m_FindPos[3].push_back(Point('h', '6'));
+	m_FindPos[4].push_back(Point('h', '8'));
+	m_FindPos[4].push_back(Point('a', '1'));
+	m_FindPos[4].push_back(Point('a', '5'));
+	m_FindPos[4].push_back(Point('b', '8'));
+	m_FindPos[4].push_back(Point('e', '1'));
+	m_FindPos[4].push_back(Point('f', '8'));
+	m_FindPos[4].push_back(Point('h', '2'));
+	m_FindPos[4].push_back(Point('h', '6'));
 	
 
 	//type2

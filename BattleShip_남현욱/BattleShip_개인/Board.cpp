@@ -310,17 +310,21 @@ bool Board::IsValidPlace(Point pos, Direction dir, int length)
 {
 	int dx = 0, dy = 0;
 
-	if (dir == Direction::DOWN)
+	switch (dir)
 	{
-		dx = 0;
+	case UP:
+		dy = -1;
+		break;
+	case DOWN:
 		dy = 1;
-	}
-	else
-	{
+		break;
+	case LEFT:
+		dx = -1;
+		break;
+	case RIGHT:
 		dx = 1;
-		dy = 0;
+		break;
 	}
-
 
 	for (int i = 0; i < length; i++)
 	{
