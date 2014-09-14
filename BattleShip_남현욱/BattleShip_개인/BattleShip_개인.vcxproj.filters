@@ -90,7 +90,10 @@
     <ClCompile Include="DataType.cpp">
       <Filter>Define</Filter>
     </ClCompile>
-    <ClCompile Include="PlayerAI.cpp">
+    <ClCompile Include="PlayerAttackAI.cpp">
+      <Filter>GameObject\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerPlaceAI.cpp">
       <Filter>GameObject\Player</Filter>
     </ClCompile>
   </ItemGroup>

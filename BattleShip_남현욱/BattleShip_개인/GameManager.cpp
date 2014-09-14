@@ -3,7 +3,7 @@
 #include "GameManager.h"
 #include "Player.h"
 #include "Macro.h"
-//#define PRINT_DATA
+#define PRINT_DATA 0
 
 GameManager* GameManager::m_Instance = nullptr;
 
@@ -56,9 +56,9 @@ void GameManager::RunGame()
 	int maxTurn = 0;
 	int minTurn = 64;
 	int turns[64] = { 0, };
-	Point pos[64];
+	const int GAME_NUMBER = 10;
 
-	for (int i = 0; i < 100000; i++)
+	for (int i = 0; i < GAME_NUMBER; i++)
 	{
 		m_Player1->Init(false);
 		m_Player2->Init(false);
@@ -68,69 +68,43 @@ void GameManager::RunGame()
 		Point AttackPos;
 		HitResult HitRes;
 
-#ifdef PRINT_DATA
-			system("cls");
-			m_Player2->PrintShipData();
-			printf("turn:%d\n", m_Turn);
-			m_Player1->PrintEnemyBoardData();
-			getchar();
-#endif
-		
 		while (!m_Player2->IsDead())
 		{
+			if (PRINT_DATA)
+			{
+				Print();
+			}
+
 			AttackPos = m_Player1->GetNextAttackPos();
 			HitRes = m_Player2->SendAttackResult(AttackPos);
 			m_Player1->RecieveAttackResult(AttackPos, HitRes);
-			pos[m_Turn] = AttackPos;
 			m_Turn++;
-
-#ifdef PRINT_DATA
-
-				system("cls");
-				m_Player2->PrintShipData();
-				printf("turn:%d\n", m_Turn);
-				m_Player1->PrintEnemyBoardData();
-				getchar();
-#endif
 		}
-		//printf("%d\n", m_Turn);
 		totalTurn += m_Turn;
 		turns[m_Turn - 1]++;
-		for (int a = 0; a<m_Turn; a++)
-		{
-			for (int b = a+1; b<m_Turn; b++)
-			{
-				if (pos[a] == pos[b])
-				{
-					m_Player2->PrintShipData();
-					printf("shit! %d %d %c%c",a,b,pos[a].x,pos[a].y);
-					getchar();
-					for (int c = 0; c< m_Player1->m_SecondFindPos[0].size(); c++)
-					{
-						printf("%c%c\n", m_Player1->m_SecondFindPos[0][c].x, m_Player1->m_SecondFindPos[0][c].y);
-					}
-					printf("\n");
-					for (int c = 0; c< m_Player1->m_FindPos[0].size(); c++)
-					{
-						printf("%c%c\n", m_Player1->m_FindPos[0][c].x, m_Player1->m_FindPos[0][c].y);
-					}
-				}
-			}
-		}
+
 
 		if (m_Turn > maxTurn)maxTurn = m_Turn;
 		if (m_Turn < minTurn)minTurn = m_Turn;
-		if (i % 100 == 0)
-		{
-			printf("%d\n", i);
-		}
-	
+
+		printf("Game #%d : %d\n", i + 1, m_Turn);
 	}
-	
-	printf("average : %d.%05d max : %d min : %d \n", totalTurn / 100000, totalTurn % 100000, maxTurn, minTurn);
-	
+
+	printf("average : %g max : %d min : %d \n", (double)totalTurn / GAME_NUMBER, maxTurn, minTurn);
+
+
 	for (int i = 15; i < 64; i++)
 	{
 		printf("%d turn : %d\n", i + 1, turns[i]);
 	}
+}
+
+void GameManager::Print()
+{
+	COORD start = { 0, 0 };
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), start);
+	m_Player2->PrintShipData();
+	printf("turn:%3d\n", m_Turn);
+	m_Player1->PrintEnemyBoardData();
+	getchar();
 }

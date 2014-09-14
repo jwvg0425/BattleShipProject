@@ -25,23 +25,14 @@ enum BoardState
 
 enum ShipType
 {
-	DESTROYER,
-	CRUISER,
-	BATTLESHIP,
 	AIRCRAFT,
-};
-
-
-enum Direction
-{
-	DOWN,
-	RIGHT,
-	UP,
-	LEFT,
+	BATTLESHIP,
+	CRUISER,
+	DESTROYER,
 };
 
 enum AIState
 {
-	SEARCH,
 	HUNT,
+	TARGET,
 };

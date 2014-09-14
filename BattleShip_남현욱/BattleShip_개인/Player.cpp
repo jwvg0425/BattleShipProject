@@ -22,6 +22,7 @@ Player::Player()
 	m_MyBoard = new Board();
 	m_EnemyBoard = new Board();
 	m_GameCount = -1;
+	LoadData();
 }
 
 
@@ -37,7 +38,7 @@ Player::~Player()
 	delete m_MyBoard;
 	delete m_EnemyBoard;
 	
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; i < SAVING_DATA_NUM; i++)
 	{
 		m_GameData[i].clear();
 	}
@@ -47,23 +48,25 @@ void Player::Init(bool isReset)
 {
 	m_PrevAttackPos.x = 0;
 	m_PrevAttackPos.y = 0;
-	m_AIState = AIState::SEARCH;
+	m_AIState = HUNT;
 	m_HitCount = 0;
 	m_AttackCount = 0;
+
 	if (isReset)
 	{
 		m_GameCount = -1;
-		for (int i = 0; i < 1000; i++)
+		for (int i = 0; i < SAVING_DATA_NUM; i++)
 		{
 			m_GameData[i].clear();
 		}
+		LoadData();
 	}
 	else
 	{
 		m_GameCount++;
-		if (m_GameCount >= 1000)
+		if (m_GameCount >= SAVING_DATA_NUM)
 		{
-			m_GameData[m_GameCount % 1000].clear();
+			m_GameData[m_GameCount %SAVING_DATA_NUM].clear();
 		}
 	}
 
@@ -73,118 +76,52 @@ void Player::Init(bool isReset)
 	}
 	m_MyBoard->Init();
 	m_EnemyBoard->Init();
-	m_NumOfEnemyShips[AIRCRAFT] = ShipData::GetShipNum(AIRCRAFT);
-	m_NumOfEnemyShips[BATTLESHIP] = ShipData::GetShipNum(BATTLESHIP);
-	m_NumOfEnemyShips[CRUISER] = ShipData::GetShipNum(CRUISER);
-	m_NumOfEnemyShips[DESTROYER] = ShipData::GetShipNum(DESTROYER);
+	m_NumOfEnemyShips[AIRCRAFT] = ShipData::GetNum(AIRCRAFT);
+	m_NumOfEnemyShips[BATTLESHIP] = ShipData::GetNum(BATTLESHIP);
+	m_NumOfEnemyShips[CRUISER] = ShipData::GetNum(CRUISER);
+	m_NumOfEnemyShips[DESTROYER] = ShipData::GetNum(DESTROYER);
 	m_DestroyData.clear();
-	InitFindPos();
+	m_PlaceType = RANDOM;
 }
-
-void Player::PlaceShips()
-{
-	Point randomPos;
-	Direction dir;
-	int dx = 0, dy = 0;
-	int idx;
-	int count = 0;
-
-	for (auto& ship : m_ShipList)
-	{
-		do
-		{
-			dir = (Direction)RANDOM(2);
-
-			if (dir == Direction::DOWN)
-			{
-				dy = 1;
-				dx = 0;
-			}
-			else
-			{
-				dx = 1;
-				dy = 0;
-			}
-
-			randomPos.x = 'a' + (char)RANDOM(BOARD_WIDTH);
-			randomPos.y = '1' + (char)RANDOM(BOARD_HEIGHT);
-			
-			
-			idx = RANDOM(4);
-			if (count < 4)
-			{
-				randomPos.x = (idx % 2) ? 'h' : 'a';
-				randomPos.y = (idx / 2) ? '8' : '1';
-				if (idx % 2 == 1 && dir==RIGHT)
-				{
-					dir = LEFT;
-					dx = -1;
-				}
-				if (idx / 2 == 1 && dir == DOWN)
-				{
-					dir = UP;
-					dy = -1;
-				}
-			}
-			else
-			{
-				randomPos.x = 'a' + (char)RANDOM(BOARD_WIDTH);
-				randomPos.y = '1' + (char)RANDOM(BOARD_HEIGHT);
-			}
-		} while (!m_MyBoard->IsValidPlace(randomPos, dir, ship->GetMaxHP()));
-
-		count++;
-		for (int i = 0; i < ship->GetMaxHP(); i++)
-		{
-			m_MyBoard->SetCellState(randomPos, SHIP_STATE);
-			ship->AddPosition(randomPos);
-			randomPos.x += (char)dx;
-			randomPos.y += (char)dy;
-		}
-	}
-}
-
-
 
 HitResult Player::SendAttackResult(Point pos)
 {
+	_ASSERT(pos.x != 0 && pos.y != 0);
 	HitResult res;
 
 	for (auto& ship : m_ShipList)
 	{
 		res = ship->HitCheck(pos);
-		if ( res != HitResult::MISS)
+		if ( res != MISS)
 		{
 			return res;
 		}
 	}
 
-	m_AttackCount++;
-
-	return HitResult::MISS;
+	return MISS;
 }
 
 void Player::RecieveAttackResult(Point pos, HitResult res)
 {
 	if (res == MISS)
 	{
-		m_EnemyBoard->SetCellState(pos, BoardState::MISS_STATE);
+		m_EnemyBoard->SetCellState(pos, MISS_STATE);
 	}
 	else
 	{
-		m_EnemyBoard->SetCellState(pos, BoardState::HIT_STATE);
-		m_GameData[m_GameCount % 1000].push_back(pos);
+		m_EnemyBoard->SetCellState(pos, HIT_STATE);
+		m_GameData[m_GameCount % SAVING_DATA_NUM].push_back(pos);
 	}
 
 	if (res > DESTROY)
 	{
 		m_DestroyData[pos] = res;
-		m_NumOfEnemyShips[ShipData::GetShipType(res)]--;
+		m_NumOfEnemyShips[ShipData::GetType(res)]--;
 	}
 	
 	m_PrevAttackPos = pos;
 
-	ChangeAIState(res);
+	UpdateAIState(res);
 }
 
 bool Player::IsDead()
@@ -212,4 +149,26 @@ void Player::PrintEnemyBoardData()
 	m_EnemyBoard->Print();
 }
 
+void Player::LoadData()
+{
+	FILE* file = fopen("data.txt", "r");
+	char buffer[256];
+	
+	if (file == nullptr)
+	{
+		return;
+	}
+
+	while (fgets(buffer, 256, file) != NULL)
+	{
+		m_GameCount++;
+
+		for (int j = 0; j < 16; j++)
+		{
+			m_GameData[m_GameCount].push_back(Point(buffer[j*3], buffer[j*3+1]));
+		}
+	}
+
+	fclose(file);
+}
 

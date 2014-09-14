@@ -1,68 +1,57 @@
 ﻿#include"stdafx.h"
 #include"DataType.h"
 
-int ShipData::GetShipSize(ShipType type)
+int ShipData::GetSize(ShipType type)
 {
 	switch (type)
 	{
 	case AIRCRAFT:
 		return 5;
-		break;
 	case BATTLESHIP:
 		return 4;
-		break;
 	case CRUISER:
 		return 3;
-		break;
 	case DESTROYER:
 		return 2;
-		break;
 	}
 
 	return -1;
 }
 
-int ShipData::GetShipSize(HitResult result)
+int ShipData::GetSize(HitResult result)
 {
-	return GetShipSize(GetShipType(result));
+	return GetSize(GetType(result));
 }
 
-int ShipData::GetShipNum(ShipType type)
+int ShipData::GetNum(ShipType type)
 {
 	switch (type)
 	{
 	case AIRCRAFT:
 		return 1;
-		break;
 	case BATTLESHIP:
 		return 1;
-		break;
 	case CRUISER:
 		return 1;
-		break;
 	case DESTROYER:
 		return 2;
-		break;
 	}
+
 	return -1;
 }
 
-ShipType ShipData::GetShipType(HitResult result)
+ShipType ShipData::GetType(HitResult result)
 {
 	switch (result)
 	{
 	case DESTROY_AIRCRAFT:
 		return AIRCRAFT;
-		break;
 	case DESTROY_BATTLESHIP:
 		return BATTLESHIP;
-		break;
 	case DESTROY_CRUISER:
 		return CRUISER;
-		break;
 	case DESTROY_DESTROYER:
 		return DESTROYER;
-		break;
 	}
 
 	return (ShipType)-1;
@@ -71,19 +60,168 @@ ShipType ShipData::GetShipType(HitResult result)
 
 void Point::ChangeByDir(Direction dir)
 {
-	switch (dir)
+	_ASSERT(dir >= Direction::BEGIN && dir < Direction::END);
+	int dx, dy;
+
+	dir.GetDeltaValue(dx, dy);
+
+	x += (char)dx;
+	y += (char)dy;
+}
+
+Direction& Direction::operator ++(int num)
+{
+	if (value == END)
 	{
-	case Direction::DOWN:
-		y += 1;
+		value = BEGIN;
+	}
+	else
+	{
+		value = (Type)(value + 1);
+	}
+
+	return *this;
+}
+
+Direction::Type Direction::operator ~()
+{
+	return GetReverseDir();
+}
+
+Direction::Type Direction::GetReverseDir()
+{
+	return (Type)((value + 2) % 4);
+}
+
+bool Direction::operator<(Type type)
+{
+	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+
+	return value < type;
+}
+
+bool Direction::operator<(Direction& dir)
+{
+	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+
+	return value < dir.value;
+}
+
+bool Direction::operator>(Type type)
+{
+	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+
+	return value < type;
+}
+
+bool Direction::operator>(Direction& dir)
+{
+	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+
+	return value > dir.value;
+}
+
+bool Direction::operator==(Type type)
+{
+	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+
+	return value == type;
+}
+
+bool Direction::operator==(Direction& dir)
+{
+	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+
+	return value == dir.value;
+}
+
+bool Direction::operator>=(Direction& dir)
+{
+	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+
+	return value >= dir.value;
+}
+
+bool Direction::operator>=(Type type)
+{
+	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+
+	return value >= type;
+}
+
+bool Direction::operator<=(Type type)
+{
+	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+
+	return value <= type;
+}
+
+bool Direction::operator<=(Direction& dir)
+{
+	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+
+	return value <= dir.value;
+}
+
+Direction& Direction::operator=(Type type)
+{
+	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+
+	value = type;
+
+	return *this;
+}
+
+Direction& Direction::operator=(Direction& dir)
+{
+	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+
+	value = dir.value;
+
+	return *this;
+}
+
+Direction::Direction(Type type)
+{
+	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+
+	value = type;
+}
+
+Direction::Direction()
+{
+	value = ERROR_VALUE;
+}
+
+Direction::~Direction()
+{
+
+}
+
+Direction::Type Direction::operator+ (int num)
+{
+	return (Type)((value + num) % 4);
+}
+
+void Direction::GetDeltaValue(int& dx, int& dy)
+{
+	switch (value)
+	{
+	case UP:
+		dx = 0;
+		dy = -1;
 		break;
-	case Direction::UP:
-		y -= 1;
+	case LEFT:
+		dx = -1;
+		dy = 0;
 		break;
-	case Direction::LEFT:
-		x -= 1;
+	case DOWN:
+		dx = 0;
+		dy = 1;
 		break;
-	case Direction::RIGHT:
-		x += 1;
+	case RIGHT:
+		dx = 1;
+		dy = 0;
 		break;
 	}
 }

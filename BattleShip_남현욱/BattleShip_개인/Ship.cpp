@@ -39,6 +39,12 @@ int Ship::HasPosition(Point pos)
 
 HitResult Ship::HitCheck(Point pos)
 {
+	_ASSERT(pos.x != 0 && pos.y != 0);
+	
+	if (pos.x == 0 || pos.y == 0)
+	{
+		return MISS;
+	}
 
 	int idx = HasPosition(pos);
 
@@ -61,6 +67,8 @@ HitResult Ship::HitCheck(Point pos)
 
 void Ship::AddPosition(Point pos)
 {
+	_ASSERT(pos.x != 0 && pos.y != 0);
+
 	for (int i = 0; i < m_MaxHP; i++)
 	{
 		if (m_Pos[i].x == 0)

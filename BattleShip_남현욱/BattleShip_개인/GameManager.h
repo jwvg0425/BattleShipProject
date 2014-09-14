@@ -11,6 +11,7 @@ public:
 
 	void InitGame();
 	void RunGame();
+	void Print();
 
 private:
 	GameManager();

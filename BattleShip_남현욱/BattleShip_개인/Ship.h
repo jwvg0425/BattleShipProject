@@ -13,6 +13,7 @@ public:
 	void AddPosition(Point pos);
 	int GetMaxHP();
 	int GetHP();
+	ShipType GetType(){return m_Type;}
 	void PrintData();
 protected:
 	std::string m_Name;

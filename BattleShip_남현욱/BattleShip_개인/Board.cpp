@@ -15,9 +15,9 @@ Board::~Board()
 
 void Board::Init()
 {
-	for (int i = 0; i < BOARD_WIDTH; i++)
+	for (int i = 0; i < WIDTH; i++)
 	{
-		for (int j = 0; j < BOARD_HEIGHT; j++)
+		for (int j = 0; j < HEIGHT; j++)
 		{
 			m_BoardStates[i][j] = NONE_STATE;
 		}
@@ -31,7 +31,16 @@ BoardState Board::GetCellState(Point pos)
 		return ERROR_STATE;
 	}
 
-	return m_BoardStates[pos.x - 'a'][pos.y - '1'];
+	return m_BoardStates[pos.x - Board::START_X][pos.y - Board::START_Y];
+}
+
+BoardState Board::GetCellState(char x, char y)
+{
+	Point pos;
+	pos.x = x;
+	pos.y = y;
+
+	return GetCellState(pos);
 }
 
 void Board::SetCellState(Point pos, BoardState state)
@@ -41,13 +50,22 @@ void Board::SetCellState(Point pos, BoardState state)
 		return;
 	}
 
-	m_BoardStates[pos.x - 'a'][pos.y - '1'] = state;
+	m_BoardStates[pos.x - Board::START_X][pos.y - Board::START_Y] = state;
+}
+
+void Board::SetCellState(char x, char y,BoardState state)
+{
+	Point pos;
+	pos.x = x;
+	pos.y = y;
+
+	SetCellState(pos, state);
 }
 
 bool Board::IsInBoard(Point pos)
 {
-	if (pos.y < '1' + BOARD_HEIGHT && pos.y >= '1' &&
-		pos.x >= 'a' && pos.x < 'a' + BOARD_WIDTH)
+	if (pos.y < Board::START_Y + HEIGHT && pos.y >= Board::START_Y &&
+		pos.x >= Board::START_X && pos.x < Board::START_X + WIDTH)
 	{
 		return true;
 	}
@@ -55,19 +73,27 @@ bool Board::IsInBoard(Point pos)
 	return false;
 }
 
+bool Board::IsInBoard(char x, char y)
+{
+	Point pos = Point(x, y);
+
+	return IsInBoard(pos);
+}
+
 void Board::Print()
 {
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+
 	printf("   ");
-	for (int x = 0; x < BOARD_WIDTH; x++)
+	for (int x = 0; x < WIDTH; x++)
 	{
-		printf("%-2c", 'a' + x);
+		printf("%-2c", Board::START_X + x);
 	}
 	printf("\n");
 
-	for (int y = 0; y < BOARD_HEIGHT; y++)
+	for (int y = 0; y < HEIGHT; y++)
 	{
-		for (int x = 0; x <= BOARD_WIDTH; x++)
+		for (int x = 0; x <= WIDTH; x++)
 		{
 			if (x == 0)
 			{
@@ -75,13 +101,17 @@ void Board::Print()
 			}
 			else
 			{
-				switch (GetCellState(Point(x + 'a' - 1, y + '1')))
+				switch (GetCellState((char)x + START_X - 1, (char)y + START_Y))
 				{
 				case NONE_STATE:
 					printf("□");
 					break;
 				case MISS_STATE:
 					SetConsoleTextAttribute(console, 0x000c);
+					printf("■");
+					break;
+				case SHIP_STATE:
+					SetConsoleTextAttribute(console, 0x0004);
 					printf("■");
 					break;
 				case HIT_STATE:
@@ -107,7 +137,7 @@ int Board::GetAloneGrade(Point pos)
 	Point around;
 	int aloneGrade = 0;
 
-	for (Direction dir = DOWN; dir <= LEFT; dir = (Direction)(dir + 1))
+	for (Direction dir = Direction::BEGIN; dir < Direction::END; dir++)
 	{
 		around = pos;
 		around.ChangeByDir(dir);
@@ -120,95 +150,17 @@ int Board::GetAloneGrade(Point pos)
 	return aloneGrade;
 }
 
-void Board::UpdateCellData(std::map<Point, HitResult>& destroyDataList, int* numOfEnemyShips)
+int Board::GetAloneGrade(char x, char y)
 {
-	while (!destroyDataList.empty())
-	{
-		std::list<Point> completePoints;
-		for (auto& destroyData : destroyDataList)
-		{
-			Point pos = destroyData.first;
-			HitResult res = destroyData.second;
-			int size = ShipData::GetShipSize(res);
+	Point pos = Point(x, y);
 
-			if (GetMaxHitSize(pos, DOWN) == size&&GetMaxHitSize(pos, RIGHT) < size)
-			{
-				while (GetCellState(pos) == HIT_STATE)
-				{
-					pos.ChangeByDir(UP);
-				}
-				for (int s = 0; s < size; s++)
-				{
-					pos.ChangeByDir(DOWN);
-					SetCellState(pos, DESTROY_STATE);
-				}
-				completePoints.push_back(destroyData.first);
-			}
-			else if (GetMaxHitSize(pos, DOWN) < size &&GetMaxHitSize(pos, RIGHT) == size)
-			{
-				while (GetCellState(pos) == HIT_STATE)
-				{
-					pos.ChangeByDir(LEFT);
-				}
-				for (int s = 0; s < size; s++)
-				{
-					pos.ChangeByDir(RIGHT);
-					SetCellState(pos, DESTROY_STATE);
+	return GetAloneGrade(pos);
+}
 
-				}
-
-				completePoints.push_back(destroyData.first);
-			}
-			else
-			{
-				for (Direction dir = DOWN; dir <= LEFT; dir = (Direction)(dir + 1))
-				{
-					if (GetHitSize(pos, dir) >= size&&
-						GetHitSize(pos, (Direction)((dir + 1) % 4)) < size &&
-						GetHitSize(pos, (Direction)((dir + 2) % 4)) < size &&
-						GetHitSize(pos, (Direction)((dir + 3) % 4)) < size)
-					{
-						//destroy cell로 변경
-						for (int s = 0; s < size; s++)
-						{
-							SetCellState(pos, DESTROY_STATE);
-							pos.ChangeByDir(dir);
-						}
-						completePoints.push_back(destroyData.first);
-						break;
-					}
-				}
-			}
-		}
-
-		for (auto point : completePoints)
-		{
-			destroyDataList.erase(point);
-		}
-		if (completePoints.empty())
-		{
-			completePoints.clear();
-			break;
-		}
-		completePoints.clear();
-	}
-
-	
-	for (int x = 0; x < BOARD_WIDTH; x++)
-	{
-		for (int y = 0; y < BOARD_HEIGHT; y++)
-		{
-			Point pos = Point('a' + (char)x, '1' + (char)y);
-			if (GetCellState(pos) != NONE_STATE)
-				continue;
-
-			if (!IsValidAttackStartPos(pos, numOfEnemyShips))
-			{
-				SetCellState(pos, MISS_STATE);
-			}
-		}
-	}
-	
+void Board::UpdateCellData(std::map<Point, HitResult>& destroyDataList, int* numOfEnemyShips)
+{	
+	UpdateDestroyCell(destroyDataList);
+	UpdateInvaildShipCell(numOfEnemyShips);
 }
 
 int Board::GetHitSize(Point pos, Direction dir)
@@ -224,26 +176,30 @@ int Board::GetHitSize(Point pos, Direction dir)
 	return size;
 }
 
+int Board::GetHitSize(char x, char y, Direction dir)
+{
+	Point pos = Point(x, y);
+
+	return GetHitSize(pos, dir);
+}
+
 int Board::GetMaxHitSize(Point pos, Direction dir)
 {
 	int size;
-	Point head = pos, tail = pos;
 
-	while (GetCellState(head) == HIT_STATE)
-	{
-		head.ChangeByDir(dir);
-	}
-	while (GetCellState(tail) == HIT_STATE)
-	{
-		tail.ChangeByDir((Direction)((dir + 2) % 4));
-	}
-
-	size = abs(head.x - tail.x + head.y - tail.y - 1);
+	size = GetHitSize(pos, dir) + GetHitSize(pos, ~dir) - 1;
 
 	return size;
 }
 
-int Board::GetLengthToNotNoneCell(Point pos, Direction dir)
+int Board::GetMaxHitSize(char x, char y, Direction dir)
+{
+	Point pos = Point(x, y);
+
+	return GetMaxHitSize(pos, dir);
+}
+
+int Board::GetNoneSize(Point pos, Direction dir)
 {
 	int size = 0;
 
@@ -256,11 +212,18 @@ int Board::GetLengthToNotNoneCell(Point pos, Direction dir)
 	return size;
 }
 
+int Board::GetNoneSize(char x, char y, Direction dir)
+{
+	Point pos = Point(x, y);
+
+	return GetNoneSize(pos, dir);
+}
+
 int Board::GetPossibleAttackRange(Point pos)
 {
 	int maxSize = 0;
 
-	for (Direction dir = DOWN; dir <= RIGHT; dir = (Direction)(dir + 1))
+	for (Direction dir = Direction::DOWN; dir <= Direction::RIGHT; dir++)
 	{
 		Point rangePos = pos;
 		int size = 0;
@@ -277,7 +240,7 @@ int Board::GetPossibleAttackRange(Point pos)
 			GetCellState(rangePos) == HIT_STATE)
 		{
 			size++;
-			rangePos.ChangeByDir((Direction)((dir + 2) % 4));
+			rangePos.ChangeByDir(~dir);
 		}
 		if (size > maxSize)maxSize = size;
 	}
@@ -285,15 +248,22 @@ int Board::GetPossibleAttackRange(Point pos)
 	return maxSize - 1;
 }
 
+int Board::GetPossibleAttackRange(char x, char y)
+{
+	Point pos = Point(x, y);
+
+	return GetPossibleAttackRange(pos);
+}
+
 bool Board::IsValidAttackStartPos(Point pos,int* numOfEnemyShips)
 {
 	int size = 0;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = DESTROYER; i > AIRCRAFT; i--)
 	{
 		if (numOfEnemyShips[i]>0)
 		{
-			size = ShipData::GetShipSize((ShipType)i);
+			size = ShipData::GetSize((ShipType)i);
 			break;
 		}
 	}
@@ -306,29 +276,22 @@ bool Board::IsValidAttackStartPos(Point pos,int* numOfEnemyShips)
 	return false;
 }
 
+bool Board::IsValidAttackStartPos(char x, char y, int* numOfEnemyShips)
+{
+	Point pos = Point(x, y);
+
+	return IsValidAttackStartPos(pos, numOfEnemyShips);
+}
+
 bool Board::IsValidPlace(Point pos, Direction dir, int length)
 {
 	int dx = 0, dy = 0;
 
-	switch (dir)
-	{
-	case UP:
-		dy = -1;
-		break;
-	case DOWN:
-		dy = 1;
-		break;
-	case LEFT:
-		dx = -1;
-		break;
-	case RIGHT:
-		dx = 1;
-		break;
-	}
+	dir.GetDeltaValue(dx, dy);
 
 	for (int i = 0; i < length; i++)
 	{
-		if (GetCellState(pos) != BoardState::NONE_STATE)
+		if (!(GetCellState(pos) == BoardState::NONE_STATE || GetCellState(pos) == HIT_STATE))
 		{
 			return false;
 		}
@@ -340,20 +303,27 @@ bool Board::IsValidPlace(Point pos, Direction dir, int length)
 	return true;
 }
 
+bool Board::IsValidPlace(char x, char y, Direction dir, int length)
+{
+	Point pos = Point(x, y);
+
+	return IsValidPlace(pos, dir, length);
+}
+
 Point Board::GetHitCell(bool isFirst)
 {
-	static Point prevHitCell = Point('a', '0');
+	static Point prevHitCell = Point(START_X, START_Y-1);
 
 	if (isFirst)
 	{
-		prevHitCell = Point('a', '0');
+		prevHitCell = Point(START_X, START_Y-1);
 	}
 
-	for (int x = prevHitCell.x - 'a'; x < BOARD_WIDTH; x++)
+	for (int x = prevHitCell.x - START_X; x < WIDTH; x++)
 	{
-		for (int y = prevHitCell.y - '1'; y < BOARD_HEIGHT; y++)
+		for (int y = prevHitCell.y - START_Y; y < HEIGHT; y++)
 		{
-			Point checkPos = Point('a' + (char)x, '1' + (char)y);
+			Point checkPos = Point(START_X + (char)x, START_Y + (char)y);
 
 			if (checkPos == prevHitCell)
 			{
@@ -380,4 +350,99 @@ bool Board::IsValidAttackPos(Point pos)
 	}
 
 	return false;
+}
+
+bool Board::IsValidAttackPos(char x, char y)
+{
+	Point pos = Point(x, y);
+
+	return IsValidAttackPos(pos);
+}
+
+void Board::UpdateDestroyCell(std::map<Point, HitResult>& destroyDataList)
+{
+	while (!destroyDataList.empty())
+	{
+		std::list<Point> completePoints;
+		for (auto& destroyData : destroyDataList)
+		{
+			Point pos = destroyData.first;
+			HitResult res = destroyData.second;
+			int size = ShipData::GetSize(res);
+
+			if (GetMaxHitSize(pos, Direction::DOWN) == size&&
+				GetMaxHitSize(pos, Direction::RIGHT) < size)
+			{
+				while (GetCellState(pos) == HIT_STATE)
+				{
+					pos.ChangeByDir(Direction::UP);
+				}
+				for (int s = 0; s < size; s++)
+				{
+					pos.ChangeByDir(Direction::DOWN);
+					SetCellState(pos, DESTROY_STATE);
+				}
+				completePoints.push_back(destroyData.first);
+			}
+			else if (GetMaxHitSize(pos, Direction::DOWN) < size &&
+				GetMaxHitSize(pos, Direction::RIGHT) == size)
+			{
+				while (GetCellState(pos) == HIT_STATE)
+				{
+					pos.ChangeByDir(Direction::LEFT);
+				}
+				for (int s = 0; s < size; s++)
+				{
+					pos.ChangeByDir(Direction::RIGHT);
+					SetCellState(pos, DESTROY_STATE);
+
+				}
+
+				completePoints.push_back(destroyData.first);
+			}
+			else
+			{
+				for (Direction dir = Direction::BEGIN; dir < Direction::END; dir++)
+				{
+					if (GetHitSize(pos, dir) >= size&&
+						GetHitSize(pos, dir + 1) < size &&
+						GetHitSize(pos, dir + 2) < size &&
+						GetHitSize(pos, dir + 3) < size)
+					{
+						//destroy cell로 변경
+						for (int s = 0; s < size; s++)
+						{
+							SetCellState(pos, DESTROY_STATE);
+							pos.ChangeByDir(dir);
+						}
+						completePoints.push_back(destroyData.first);
+						break;
+					}
+				}
+			}
+		}
+
+		for (auto point : completePoints)
+		{
+			destroyDataList.erase(point);
+		}
+	}
+}
+
+void Board::UpdateInvaildShipCell(int* numOfEnemyShips)
+{
+	for (int x = 0; x < WIDTH; x++)
+	{
+		for (int y = 0; y < HEIGHT; y++)
+		{
+			Point pos = Point(START_X + (char)x, START_Y + (char)y);
+			if (GetCellState(pos) != NONE_STATE)
+				continue;
+
+			if (!IsValidAttackStartPos(pos, numOfEnemyShips))
+			{
+				SetCellState(pos, MISS_STATE);
+			}
+		}
+	}
 }
