@@ -75,6 +75,7 @@ void Player::Init(bool isReset)
 		ship->Init();
 	}
 	m_MyBoard->Init();
+
 	m_EnemyBoard->Init();
 	m_NumOfEnemyShips[AIRCRAFT] = ShipData::GetNum(AIRCRAFT);
 	m_NumOfEnemyShips[BATTLESHIP] = ShipData::GetNum(BATTLESHIP);

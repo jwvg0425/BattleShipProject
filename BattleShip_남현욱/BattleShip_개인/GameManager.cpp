@@ -3,7 +3,7 @@
 #include "GameManager.h"
 #include "Player.h"
 #include "Macro.h"
-#define PRINT_DATA 0
+//#define PRINT_DATA
 
 GameManager* GameManager::m_Instance = nullptr;
 
@@ -15,7 +15,6 @@ GameManager::GameManager()
 	m_Player1 = new Player;
 	m_Player2 = new Player;
 }
-
 
 GameManager::~GameManager()
 {
@@ -55,7 +54,6 @@ void GameManager::RunGame()
 	int totalTurn = 0;
 	int maxTurn = 0;
 	int minTurn = 64;
-	int turns[64] = { 0, };
 	const int GAME_NUMBER = 10;
 
 	for (int i = 0; i < GAME_NUMBER; i++)
@@ -70,10 +68,10 @@ void GameManager::RunGame()
 
 		while (!m_Player2->IsDead())
 		{
-			if (PRINT_DATA)
-			{
-				Print();
-			}
+
+#ifdef PRINT_DATA
+			Print();
+#endif
 
 			AttackPos = m_Player1->GetNextAttackPos();
 			HitRes = m_Player2->SendAttackResult(AttackPos);
@@ -81,8 +79,6 @@ void GameManager::RunGame()
 			m_Turn++;
 		}
 		totalTurn += m_Turn;
-		turns[m_Turn - 1]++;
-
 
 		if (m_Turn > maxTurn)maxTurn = m_Turn;
 		if (m_Turn < minTurn)minTurn = m_Turn;
@@ -91,12 +87,6 @@ void GameManager::RunGame()
 	}
 
 	printf("average : %g max : %d min : %d \n", (double)totalTurn / GAME_NUMBER, maxTurn, minTurn);
-
-
-	for (int i = 15; i < 64; i++)
-	{
-		printf("%d turn : %d\n", i + 1, turns[i]);
-	}
 }
 
 void GameManager::Print()
