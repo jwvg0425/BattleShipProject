@@ -13,11 +13,11 @@ public:
 	void AddPosition(Point pos);
 	int GetMaxHP();
 	int GetHP();
-	ShipType GetType(){return m_Type;}
+	ClientShipType GetType(){return m_Type;}
 	void PrintData();
 protected:
 	std::string m_Name;
-	ShipType m_Type;
+	ClientShipType m_Type;
 	int m_HP;
 	int m_MaxHP;
 	Point* m_Pos;

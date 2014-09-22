@@ -52,6 +52,7 @@ void Player::Init(bool isReset)
 	m_HitCount = 0;
 	m_AttackCount = 0;
 
+	//저장되어 있는 게임 데이터까지 완전 초기화
 	if (isReset)
 	{
 		m_GameCount = -1;
@@ -74,15 +75,18 @@ void Player::Init(bool isReset)
 	{
 		ship->Init();
 	}
+
 	m_MyBoard->Init();
 
 	m_EnemyBoard->Init();
-	m_NumOfEnemyShips[AIRCRAFT] = ShipData::GetNum(AIRCRAFT);
-	m_NumOfEnemyShips[BATTLESHIP] = ShipData::GetNum(BATTLESHIP);
-	m_NumOfEnemyShips[CRUISER] = ShipData::GetNum(CRUISER);
-	m_NumOfEnemyShips[DESTROYER] = ShipData::GetNum(DESTROYER);
+	m_NumOfEnemyShips[AIRCRAFT] = ClientShipData::GetNum(AIRCRAFT);
+	m_NumOfEnemyShips[BATTLESHIP] = ClientShipData::GetNum(BATTLESHIP);
+	m_NumOfEnemyShips[CRUISER] = ClientShipData::GetNum(CRUISER);
+	m_NumOfEnemyShips[DESTROYER] = ClientShipData::GetNum(DESTROYER);
 	m_DestroyData.clear();
-	m_PlaceType = RANDOM;
+
+	m_PlaceType = (PlaceType)RANDOM(PLACE_TYPE_NUM);
+
 }
 
 HitResult Player::SendAttackResult(Point pos)
@@ -114,10 +118,10 @@ void Player::RecieveAttackResult(Point pos, HitResult res)
 		m_GameData[m_GameCount % SAVING_DATA_NUM].push_back(pos);
 	}
 
-	if (res > DESTROY)
+	if (res >= DESTROY)
 	{
 		m_DestroyData[pos] = res;
-		m_NumOfEnemyShips[ShipData::GetType(res)]--;
+		m_NumOfEnemyShips[ClientShipData::GetType(res)]--;
 	}
 	
 	m_PrevAttackPos = pos;
@@ -172,4 +176,3 @@ void Player::LoadData()
 
 	fclose(file);
 }
-

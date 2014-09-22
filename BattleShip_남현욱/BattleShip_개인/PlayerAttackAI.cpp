@@ -17,12 +17,14 @@ Point Player::GetNextAttackPos()
 	{
 		UpdateMonteCarloBoard();
 		UpdateGameDataBoard();
-		GetPosByExperience(attackPos);
+
+		attackPos = GetPosByExperience();
+
 	}
 	else if (m_AIState == AIState::TARGET)
 	{
 		attackPos = m_PrevAttackPos;
-		attackPos.ChangeByDir(m_AttackDir);
+		attackPos = attackPos.ChangeByDir(m_AttackDir);
 	}
 
 	return attackPos;
@@ -34,7 +36,7 @@ void Player::UpdateAIState(HitResult prevRes)
 	m_EnemyBoard->UpdateCellData(m_DestroyData,m_NumOfEnemyShips);
 	
 	//파괴됐을 경우에 다음 좌표 선택 처리
-	if (prevRes > DESTROY)
+	if (prevRes >= DESTROY)
 	{
 		//공격 시작했던 위치가 destroy되지 않았다면 여기서 다시 시작한다
 		if (m_EnemyBoard->GetCellState(m_AttackStartPos) != DESTROY_STATE)
@@ -49,6 +51,7 @@ void Player::UpdateAIState(HitResult prevRes)
 			}
 		}
 
+		//다른 hit인 위치가 있으면 거기서부터 다시 target 과정을 수행한다. 없으면 hunt.
 		Point hitPos = m_EnemyBoard->GetHitCell(true);
 		if (hitPos.x != 0)
 		{
@@ -82,21 +85,18 @@ void Player::UpdateAIState(HitResult prevRes)
 			m_AttackStartPos = m_PrevAttackPos;
 			m_HitCount = 0;
 
-			if (ChangeAttackDir())
-			{
-				m_AIState = TARGET;
-			}
+			m_AIState = TARGET;
 		}
 		break;
 	case TARGET:
-		if ((int)prevRes > (int)DESTROY)
+		if ((int)prevRes >= (int)DESTROY)
 		{
 			m_AIState = HUNT;
 		}
 		else if (prevRes == MISS)
 		{
 			Point nextAttackPoint;
-			Direction nextAttackDir = m_AttackDir;
+			ClientDirection nextAttackDir = m_AttackDir;
 
 			nextAttackPoint = m_AttackStartPos;
 			m_PrevAttackPos = m_AttackStartPos;
@@ -105,10 +105,10 @@ void Player::UpdateAIState(HitResult prevRes)
 			{
 				m_AIState = HUNT;
 			}
-			else if (m_HitCount > 0)
+			else
 			{
-				nextAttackDir = ~nextAttackDir;
-				nextAttackPoint.ChangeByDir(nextAttackDir);
+				nextAttackDir = nextAttackDir.GetReverseDir();
+				nextAttackPoint = nextAttackPoint.ChangeByDir(nextAttackDir);
 				if (m_EnemyBoard->IsValidAttackPos(nextAttackPoint))
 				{
 					m_AttackDir = nextAttackDir;
@@ -118,17 +118,17 @@ void Player::UpdateAIState(HitResult prevRes)
 		else if (prevRes == HIT)
 		{
 			Point nextAttackPoint = m_PrevAttackPos;
-			Direction nextAttackDir = m_AttackDir;
-			nextAttackPoint.ChangeByDir(nextAttackDir);
+			ClientDirection nextAttackDir = m_AttackDir;
+			nextAttackPoint = nextAttackPoint.ChangeByDir(nextAttackDir);
 			m_HitCount++;
 
 			if (!m_EnemyBoard->IsValidAttackPos(nextAttackPoint))
 			{
 				m_PrevAttackPos = m_AttackStartPos;
 				nextAttackPoint = m_AttackStartPos;
-				nextAttackDir = ~m_AttackDir;
+				nextAttackDir = m_AttackDir.GetReverseDir();
 
-				nextAttackPoint.ChangeByDir(nextAttackDir);
+				nextAttackPoint = nextAttackPoint.ChangeByDir(nextAttackDir);
 				if (m_EnemyBoard->IsValidAttackPos(nextAttackPoint))
 				{
 					m_AttackDir = nextAttackDir;
@@ -148,7 +148,7 @@ bool Player::ChangeAttackDir()
 	int maxLength = 0;
 	int length;
 
-	for (Direction dir = Direction::BEGIN; dir < Direction::END; dir++)
+	for (ClientDirection dir = ClientDirection::BEGIN; dir < ClientDirection::END; dir++)
 	{
 		length = m_EnemyBoard->GetNoneSize(m_AttackStartPos, dir);
 
@@ -170,7 +170,7 @@ void Player::UpdateMonteCarloBoard()
 {
 	Board tempBoard;
 	Point randomPos;
-	Direction dir = Direction::DOWN;
+	ClientDirection dir = ClientDirection::DOWN;
 	int dx = 0, dy = 0;
 	memset(m_MonteCarloBoard, 0, sizeof(m_MonteCarloBoard));
 
@@ -182,28 +182,30 @@ void Player::UpdateMonteCarloBoard()
 		{
 			for (int y = 0; y < Board::HEIGHT; y++)
 			{
-				tempBoard.SetCellState((char)x + Board::START_X, (char)y + Board::START_Y,
-					m_EnemyBoard->GetCellState((char)x + Board::START_X, (char)y + Board::START_Y));
+				BoardState state = m_EnemyBoard->GetCellState((char)x + Board::START_X, (char)y + Board::START_Y);
+				
+				tempBoard.SetCellState((char)x + Board::START_X, (char)y + Board::START_Y, state);
 			}
 		}
 
-		for (int k = 0; k < 4; k++)
+		for (int k = 0; k < ClientShipData::TYPE_NUM; k++)
 		{
 			for (int t = 0; t < m_NumOfEnemyShips[k]; t++)
 			{
-				int size = ShipData::GetSize((ShipType)k);
+				int size = ClientShipData::GetSize((ClientShipType)k);
 				count = 0;
 
 				do
 				{
-					if (count>100)
+					if (count>CHANCE_NUM)
 						break;
-					dir = (Direction::Type)RANDOM(2);
-					GetRandomPlace(randomPos, dir);
+
+					dir = (ClientDirection::Type)RANDOM(2);
+					GetRandomPlace(&randomPos, &dir);
 					count++;
 				} while (!tempBoard.IsValidPlace(randomPos, dir, size));
 
-				if (count > 100)
+				if (count > CHANCE_NUM)
 					break;
 
 				dir.GetDeltaValue(dx, dy);
@@ -219,10 +221,10 @@ void Player::UpdateMonteCarloBoard()
 				}
 			}
 
-			if (count>100)
+			if (count>CHANCE_NUM)
 				break;
 		}
-		if (count > 100)
+		if (count > CHANCE_NUM)
 		{
 			i--;
 		}
@@ -232,14 +234,14 @@ void Player::UpdateMonteCarloBoard()
 void Player::UpdateGameDataBoard()
 {
 	bool isPossible;
-	
+
 	memset(&m_GameDataBoard, 0, sizeof(m_GameDataBoard));
 	m_GameDataCount = 0;
 
 	for (int i = 0; i<((m_GameCount>SAVING_DATA_NUM) ? SAVING_DATA_NUM : m_GameCount); i++)
 	{
 		isPossible = true;
-		
+
 		for (int k = 0; k < (int)m_GameData[i].size(); k++)
 		{
 			if (m_EnemyBoard->GetCellState(m_GameData[i][k]) == MISS_STATE)
@@ -259,14 +261,16 @@ void Player::UpdateGameDataBoard()
 	}
 }
 
-void Player::GetPosByExperience(Point& pos)
+Point Player::GetPosByExperience()
 {
 	int maxValue = 0;
+	Point returnPos;
 
 	for (int y = 0; y < Board::HEIGHT; y++)
 	{
 		for (int x = 0; x < Board::WIDTH; x++)
 		{
+
 			int factor1 = m_MonteCarloBoard[x][y];
 			int factor2 = m_GameDataBoard[x][y];
 
@@ -274,12 +278,14 @@ void Player::GetPosByExperience(Point& pos)
 				factor2 = 1;
 			int value = factor1 * factor2;
 
-			if (value>maxValue && m_EnemyBoard->IsValidAttackPos((char)x + Board::START_X, (char)y + Board::START_Y))
+			if (value>maxValue &&
+				m_EnemyBoard->IsValidAttackPos((char)x + Board::START_X, (char)y + Board::START_Y))
 			{
 				maxValue = value;
-				pos = Point((char)x + Board::START_X, (char)y + Board::START_Y);
+				returnPos = Point((char)x + Board::START_X, (char)y + Board::START_Y);
 			}
 		}
 	}
+	return returnPos;
 }
 

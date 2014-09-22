@@ -1,7 +1,7 @@
 ﻿#include"stdafx.h"
 #include"DataType.h"
 
-int ShipData::GetSize(ShipType type)
+int ClientShipData::GetSize(ClientShipType type)
 {
 	switch (type)
 	{
@@ -18,12 +18,12 @@ int ShipData::GetSize(ShipType type)
 	return -1;
 }
 
-int ShipData::GetSize(HitResult result)
+int ClientShipData::GetSize(HitResult result)
 {
 	return GetSize(GetType(result));
 }
 
-int ShipData::GetNum(ShipType type)
+int ClientShipData::GetNum(ClientShipType type)
 {
 	switch (type)
 	{
@@ -40,7 +40,7 @@ int ShipData::GetNum(ShipType type)
 	return -1;
 }
 
-ShipType ShipData::GetType(HitResult result)
+ClientShipType ClientShipData::GetType(HitResult result)
 {
 	switch (result)
 	{
@@ -54,22 +54,25 @@ ShipType ShipData::GetType(HitResult result)
 		return DESTROYER;
 	}
 
-	return (ShipType)-1;
+	return (ClientShipType)-1;
 }
 
 
-void Point::ChangeByDir(Direction dir)
+Point Point::ChangeByDir(ClientDirection dir)
 {
-	_ASSERT(dir >= Direction::BEGIN && dir < Direction::END);
+	_ASSERT(dir >= ClientDirection::BEGIN && dir < ClientDirection::END);
 	int dx, dy;
+	Point newPoint;
 
 	dir.GetDeltaValue(dx, dy);
 
-	x += (char)dx;
-	y += (char)dy;
+	newPoint.x += x + (char)dx;
+	newPoint.y += y + (char)dy;
+
+	return newPoint;
 }
 
-Direction& Direction::operator ++(int num)
+ClientDirection& ClientDirection::operator ++(int num)
 {
 	if (value == END)
 	{
@@ -83,127 +86,127 @@ Direction& Direction::operator ++(int num)
 	return *this;
 }
 
-Direction::Type Direction::operator ~()
+ClientDirection::Type ClientDirection::operator ~()
 {
 	return GetReverseDir();
 }
 
-Direction::Type Direction::GetReverseDir()
+ClientDirection::Type ClientDirection::GetReverseDir()
 {
 	return (Type)((value + 2) % 4);
 }
 
-bool Direction::operator<(Type type)
+bool ClientDirection::operator<(Type type)
 {
-	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+	_ASSERT(type >= ClientDirection::BEGIN && type <= ClientDirection::END);
 
 	return value < type;
 }
 
-bool Direction::operator<(Direction& dir)
+bool ClientDirection::operator<(ClientDirection& dir)
 {
-	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+	_ASSERT(dir >= ClientDirection::BEGIN && dir <= ClientDirection::END);
 
 	return value < dir.value;
 }
 
-bool Direction::operator>(Type type)
+bool ClientDirection::operator>(Type type)
 {
-	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+	_ASSERT(type >= ClientDirection::BEGIN && type <= ClientDirection::END);
 
 	return value < type;
 }
 
-bool Direction::operator>(Direction& dir)
+bool ClientDirection::operator>(ClientDirection& dir)
 {
-	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+	_ASSERT(dir >= ClientDirection::BEGIN && dir <= ClientDirection::END);
 
 	return value > dir.value;
 }
 
-bool Direction::operator==(Type type)
+bool ClientDirection::operator==(Type type)
 {
-	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+	_ASSERT(type >= ClientDirection::BEGIN && type <= ClientDirection::END);
 
 	return value == type;
 }
 
-bool Direction::operator==(Direction& dir)
+bool ClientDirection::operator==(ClientDirection& dir)
 {
-	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+	_ASSERT(dir >= ClientDirection::BEGIN && dir <= ClientDirection::END);
 
 	return value == dir.value;
 }
 
-bool Direction::operator>=(Direction& dir)
+bool ClientDirection::operator>=(ClientDirection& dir)
 {
-	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+	_ASSERT(dir >= ClientDirection::BEGIN && dir <= ClientDirection::END);
 
 	return value >= dir.value;
 }
 
-bool Direction::operator>=(Type type)
+bool ClientDirection::operator>=(Type type)
 {
-	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+	_ASSERT(type >= ClientDirection::BEGIN && type <= ClientDirection::END);
 
 	return value >= type;
 }
 
-bool Direction::operator<=(Type type)
+bool ClientDirection::operator<=(Type type)
 {
-	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+	_ASSERT(type >= ClientDirection::BEGIN && type <= ClientDirection::END);
 
 	return value <= type;
 }
 
-bool Direction::operator<=(Direction& dir)
+bool ClientDirection::operator<=(ClientDirection& dir)
 {
-	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+	_ASSERT(dir >= ClientDirection::BEGIN && dir <= ClientDirection::END);
 
 	return value <= dir.value;
 }
 
-Direction& Direction::operator=(Type type)
+ClientDirection& ClientDirection::operator=(Type type)
 {
-	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+	_ASSERT(type >= ClientDirection::BEGIN && type <= ClientDirection::END);
 
 	value = type;
 
 	return *this;
 }
 
-Direction& Direction::operator=(Direction& dir)
+ClientDirection& ClientDirection::operator=(ClientDirection& dir)
 {
-	_ASSERT(dir >= Direction::BEGIN && dir <= Direction::END);
+	_ASSERT(dir >= ClientDirection::BEGIN && dir <= ClientDirection::END);
 
 	value = dir.value;
 
 	return *this;
 }
 
-Direction::Direction(Type type)
+ClientDirection::ClientDirection(Type type)
 {
-	_ASSERT(type >= Direction::BEGIN && type <= Direction::END);
+	_ASSERT(type >= ClientDirection::BEGIN && type <= ClientDirection::END);
 
 	value = type;
 }
 
-Direction::Direction()
+ClientDirection::ClientDirection()
 {
 	value = ERROR_VALUE;
 }
 
-Direction::~Direction()
+ClientDirection::~ClientDirection()
 {
 
 }
 
-Direction::Type Direction::operator+ (int num)
+ClientDirection::Type ClientDirection::operator+ (int num)
 {
 	return (Type)((value + num) % 4);
 }
 
-void Direction::GetDeltaValue(int& dx, int& dy)
+void ClientDirection::GetDeltaValue(int& dx, int& dy)
 {
 	switch (value)
 	{

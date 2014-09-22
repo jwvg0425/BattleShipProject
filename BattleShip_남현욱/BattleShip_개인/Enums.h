@@ -3,14 +3,14 @@
 
 enum HitResult
 {
-	MISS,
-	HIT,
-	DESTROY,
+	MISS = 1,
+	HIT = 2,
+	DESTROY = 3,
 
-	DESTROY_AIRCRAFT,
-	DESTROY_BATTLESHIP,
-	DESTROY_CRUISER,
-	DESTROY_DESTROYER,
+	DESTROY_AIRCRAFT = 3,
+	DESTROY_BATTLESHIP = 4,
+	DESTROY_CRUISER = 5,
+	DESTROY_DESTROYER = 6 ,
 };
 
 enum BoardState
@@ -23,7 +23,7 @@ enum BoardState
 	ERROR_STATE = -1,
 };
 
-enum ShipType
+enum ClientShipType
 {
 	AIRCRAFT,
 	BATTLESHIP,

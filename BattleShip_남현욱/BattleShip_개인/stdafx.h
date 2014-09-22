@@ -9,7 +9,6 @@
 
 #include <stdio.h>
 #include <tchar.h>
-#include <Windows.h>
 
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
@@ -24,4 +23,10 @@
 
 #ifdef _DEBUG
 #define new new(_CLIENT_BLOCK,__FILE__, __LINE__)
+#pragma comment(lib, "BGNL_debug.lib")
+#else
+#pragma comment(lib, "BGNL.lib")
 #endif //_DEBUG
+
+#include "Network.h"
+#include <Windows.h>

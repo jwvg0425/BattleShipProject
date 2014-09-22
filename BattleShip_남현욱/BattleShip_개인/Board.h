@@ -34,16 +34,16 @@ public:
 	void UpdateCellData(std::map<Point, HitResult>& destroyDataList, int* numOfEnemyShips);
 
 	//해당 방향으로 일렬로 연속해서 존재하는 HIT_STATE인 cell의 길이를 구한다.
-	int GetHitSize(Point pos, Direction dir);
-	int GetHitSize(char x, char y, Direction dir);
+	int GetHitSize(Point pos, ClientDirection dir);
+	int GetHitSize(char x, char y, ClientDirection dir);
 
 	//상하 또는 좌우로 pos를 포함하며 연속해서 존재하는 HIT_STATE인 cell의 길이를 구한다. 
-	int GetMaxHitSize(Point pos, Direction dir);
-	int GetMaxHitSize(char x, char y, Direction dir);
+	int GetMaxHitSize(Point pos, ClientDirection dir);
+	int GetMaxHitSize(char x, char y, ClientDirection dir);
 	
 	//배를 놓을 수 있는 위치인지를 판별해서 돌려준다.
-	bool IsValidPlace(Point pos, Direction dir, int length);
-	bool IsValidPlace(char x, char y, Direction dir, int length);
+	bool IsValidPlace(Point pos, ClientDirection dir, int length);
+	bool IsValidPlace(char x, char y, ClientDirection dir, int length);
 
 	//공격 가능한 위치인지를 판별해서 돌려준다.
 	bool IsValidAttackPos(Point pos);
@@ -53,8 +53,8 @@ public:
 	Point GetHitCell(bool isFirst);
 
 	//해당 방향으로 일렬로 연속해서 존재하는 NONE_STATE인 cell의 길이를 구한다.
-	int GetNoneSize(Point pos, Direction dir);
-	int GetNoneSize(char x, char y, Direction dir);
+	int GetNoneSize(Point pos, ClientDirection dir);
+	int GetNoneSize(char x, char y, ClientDirection dir);
 
 	//해당 포지션을 중심으로 배가 존재할 수 있는 최대 길이를 구해 돌려준다.
 	int GetPossibleAttackRange(Point pos);

@@ -137,10 +137,10 @@ int Board::GetAloneGrade(Point pos)
 	Point around;
 	int aloneGrade = 0;
 
-	for (Direction dir = Direction::BEGIN; dir < Direction::END; dir++)
+	for (ClientDirection dir = ClientDirection::BEGIN; dir < ClientDirection::END; dir++)
 	{
 		around = pos;
-		around.ChangeByDir(dir);
+		around = around.ChangeByDir(dir);
 		if (GetCellState(around) == NONE_STATE ||
 			GetCellState(around) == ERROR_STATE)
 		{
@@ -163,27 +163,27 @@ void Board::UpdateCellData(std::map<Point, HitResult>& destroyDataList, int* num
 	UpdateInvaildShipCell(numOfEnemyShips);
 }
 
-int Board::GetHitSize(Point pos, Direction dir)
+int Board::GetHitSize(Point pos, ClientDirection dir)
 {
 	int size = 0;
 
 	while (GetCellState(pos) == HIT_STATE)
 	{
 		size++;
-		pos.ChangeByDir(dir);
+		pos = pos.ChangeByDir(dir);
 	}
 
 	return size;
 }
 
-int Board::GetHitSize(char x, char y, Direction dir)
+int Board::GetHitSize(char x, char y, ClientDirection dir)
 {
 	Point pos = Point(x, y);
 
 	return GetHitSize(pos, dir);
 }
 
-int Board::GetMaxHitSize(Point pos, Direction dir)
+int Board::GetMaxHitSize(Point pos, ClientDirection dir)
 {
 	int size;
 
@@ -192,27 +192,27 @@ int Board::GetMaxHitSize(Point pos, Direction dir)
 	return size;
 }
 
-int Board::GetMaxHitSize(char x, char y, Direction dir)
+int Board::GetMaxHitSize(char x, char y, ClientDirection dir)
 {
 	Point pos = Point(x, y);
 
 	return GetMaxHitSize(pos, dir);
 }
 
-int Board::GetNoneSize(Point pos, Direction dir)
+int Board::GetNoneSize(Point pos, ClientDirection dir)
 {
 	int size = 0;
 
-	pos.ChangeByDir(dir);
+	pos = pos.ChangeByDir(dir);
 	while (GetCellState(pos) == NONE_STATE)
 	{
 		size++;
-		pos.ChangeByDir(dir);
+		pos = pos.ChangeByDir(dir);
 	}
 	return size;
 }
 
-int Board::GetNoneSize(char x, char y, Direction dir)
+int Board::GetNoneSize(char x, char y, ClientDirection dir)
 {
 	Point pos = Point(x, y);
 
@@ -223,7 +223,7 @@ int Board::GetPossibleAttackRange(Point pos)
 {
 	int maxSize = 0;
 
-	for (Direction dir = Direction::DOWN; dir <= Direction::RIGHT; dir++)
+	for (ClientDirection dir = ClientDirection::DOWN; dir <= ClientDirection::RIGHT; dir++)
 	{
 		Point rangePos = pos;
 		int size = 0;
@@ -232,7 +232,7 @@ int Board::GetPossibleAttackRange(Point pos)
 			GetCellState(rangePos) == HIT_STATE)
 		{
 			size++;
-			rangePos.ChangeByDir(dir);
+			rangePos = rangePos.ChangeByDir(dir);
 		}
 
 		rangePos = pos;
@@ -240,7 +240,7 @@ int Board::GetPossibleAttackRange(Point pos)
 			GetCellState(rangePos) == HIT_STATE)
 		{
 			size++;
-			rangePos.ChangeByDir(~dir);
+			rangePos = rangePos.ChangeByDir(dir.GetReverseDir());
 		}
 		if (size > maxSize)maxSize = size;
 	}
@@ -263,7 +263,7 @@ bool Board::IsValidAttackStartPos(Point pos,int* numOfEnemyShips)
 	{
 		if (numOfEnemyShips[i]>0)
 		{
-			size = ShipData::GetSize((ShipType)i);
+			size = ClientShipData::GetSize((ClientShipType)i);
 			break;
 		}
 	}
@@ -283,7 +283,7 @@ bool Board::IsValidAttackStartPos(char x, char y, int* numOfEnemyShips)
 	return IsValidAttackStartPos(pos, numOfEnemyShips);
 }
 
-bool Board::IsValidPlace(Point pos, Direction dir, int length)
+bool Board::IsValidPlace(Point pos, ClientDirection dir, int length)
 {
 	int dx = 0, dy = 0;
 
@@ -303,7 +303,7 @@ bool Board::IsValidPlace(Point pos, Direction dir, int length)
 	return true;
 }
 
-bool Board::IsValidPlace(char x, char y, Direction dir, int length)
+bool Board::IsValidPlace(char x, char y, ClientDirection dir, int length)
 {
 	Point pos = Point(x, y);
 
@@ -361,39 +361,43 @@ bool Board::IsValidAttackPos(char x, char y)
 
 void Board::UpdateDestroyCell(std::map<Point, HitResult>& destroyDataList)
 {
+	//배가 파괴되었으나 파괴위치를 확정시키치 못한 게 남아있으면 해당 배의 위치를 확정시킬 수 있는지 확인해보고 가능하면 확정시킨다.
+
 	while (!destroyDataList.empty())
 	{
 		std::list<Point> completePoints;
+
 		for (auto& destroyData : destroyDataList)
 		{
 			Point pos = destroyData.first;
 			HitResult res = destroyData.second;
-			int size = ShipData::GetSize(res);
+			int size = ClientShipData::GetSize(res);
 
-			if (GetMaxHitSize(pos, Direction::DOWN) == size&&
-				GetMaxHitSize(pos, Direction::RIGHT) < size)
+			//상하, 좌우 중 어느 한 쪽으로만 길이가 배 크기와 동일한 경우 확정 가능.
+			if (GetMaxHitSize(pos, ClientDirection::DOWN) == size&&
+				GetMaxHitSize(pos, ClientDirection::RIGHT) < size)
 			{
 				while (GetCellState(pos) == HIT_STATE)
 				{
-					pos.ChangeByDir(Direction::UP);
+					pos = pos.ChangeByDir(ClientDirection::UP);
 				}
 				for (int s = 0; s < size; s++)
 				{
-					pos.ChangeByDir(Direction::DOWN);
+					pos = pos.ChangeByDir(ClientDirection::DOWN);
 					SetCellState(pos, DESTROY_STATE);
 				}
 				completePoints.push_back(destroyData.first);
 			}
-			else if (GetMaxHitSize(pos, Direction::DOWN) < size &&
-				GetMaxHitSize(pos, Direction::RIGHT) == size)
+			else if (GetMaxHitSize(pos, ClientDirection::DOWN) < size &&
+				GetMaxHitSize(pos, ClientDirection::RIGHT) == size)
 			{
 				while (GetCellState(pos) == HIT_STATE)
 				{
-					pos.ChangeByDir(Direction::LEFT);
+					pos = pos.ChangeByDir(ClientDirection::LEFT);
 				}
 				for (int s = 0; s < size; s++)
 				{
-					pos.ChangeByDir(Direction::RIGHT);
+					pos = pos.ChangeByDir(ClientDirection::RIGHT);
 					SetCellState(pos, DESTROY_STATE);
 
 				}
@@ -402,7 +406,8 @@ void Board::UpdateDestroyCell(std::map<Point, HitResult>& destroyDataList)
 			}
 			else
 			{
-				for (Direction dir = Direction::BEGIN; dir < Direction::END; dir++)
+				//현재 위치를 기준으로 4 방향 따져봤을 때 한쪽만 size 이상이고 나머진 아니라면 해당방향으로 확정 가능.
+				for (ClientDirection dir = ClientDirection::BEGIN; dir < ClientDirection::END; dir++)
 				{
 					if (GetHitSize(pos, dir) >= size&&
 						GetHitSize(pos, dir + 1) < size &&
@@ -413,7 +418,7 @@ void Board::UpdateDestroyCell(std::map<Point, HitResult>& destroyDataList)
 						for (int s = 0; s < size; s++)
 						{
 							SetCellState(pos, DESTROY_STATE);
-							pos.ChangeByDir(dir);
+							pos = pos.ChangeByDir(dir);
 						}
 						completePoints.push_back(destroyData.first);
 						break;

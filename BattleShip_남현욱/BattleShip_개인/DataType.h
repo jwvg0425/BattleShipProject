@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include"Enums.h"
 
-class Direction
+class ClientDirection
 {
 public:
 	enum Type
@@ -15,32 +15,37 @@ public:
 		ERROR_VALUE = -1,
 	};
 
-	Direction(Type type);
-	Direction();
-	~Direction();
+	ClientDirection(Type type);
+	ClientDirection();
+	~ClientDirection();
 
 	//현재 방향의 다음 방향을 구한다(반시계 방향).
-	Direction& operator ++(int num);
+	ClientDirection& operator ++(int num);
 	Type operator +(int num);
 
 	//현재 방향의 반대방향을 구한다.
 	Type operator ~();
 
 	bool operator <(Type type);
-	bool operator <(Direction& dir);
+	bool operator <(ClientDirection& dir);
 	bool operator >(Type type);
-	bool operator >(Direction& dir);
+	bool operator >(ClientDirection& dir);
 	bool operator ==(Type type);
-	bool operator ==(Direction& dir);
+	bool operator ==(ClientDirection& dir);
 	bool operator >=(Type type);
-	bool operator >=(Direction& dir);
+	bool operator >=(ClientDirection& dir);
 	bool operator <=(Type type);
-	bool operator <=(Direction& dir);
-	Direction& operator =(Type type);
-	Direction& operator =(Direction& dir);
+	bool operator <=(ClientDirection& dir);
+	ClientDirection& operator =(Type type);
+	ClientDirection& operator =(ClientDirection& dir);
 	
 	//방향에 따른 x,y 델타 값을 dx,dy에 저장해 돌려준다.
 	void GetDeltaValue(int& dx, int& dy);
+
+	Type GetValue()
+	{
+		return value;
+	}
 
 	Type GetReverseDir();
 private:
@@ -72,16 +77,15 @@ struct Point
 		return (this->x + this->y) < (pos.x + pos.y);
 	}
 
-	void ChangeByDir(Direction dir);
+	Point ChangeByDir(ClientDirection dir);
 };
 
 //Ship에 괸련된 데이터를 저장하는 구조체다.
-struct ShipData
+struct ClientShipData
 {
-	static const int SHIP_TYPE_NUM = 4;
-	static int GetSize(ShipType type);
-	static int GetNum(ShipType type);
-	static ShipType GetType(HitResult result);
+	static const int TYPE_NUM = 4;
+	static int GetSize(ClientShipType type);
+	static int GetNum(ClientShipType type);
+	static ClientShipType GetType(HitResult result);
 	static int GetSize(HitResult result);
 };
-

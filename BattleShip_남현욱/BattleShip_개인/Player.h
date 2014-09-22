@@ -3,6 +3,7 @@
 #include "Enums.h"
 #include "Macro.h"
 #include "Board.h"
+#include "ShipData.h"
 
 class Ship;
 
@@ -17,21 +18,35 @@ public:
 	bool IsDead();
 
 	Point GetNextAttackPos();
+	ShipData& GetShipPosList(){
+		return m_ShipData;
+	}
+	void GetMapData(char* mapData_)
+	{
+		for (int i = 0; i < 64; i++)
+		{
+			mapData_[i] = mapdata[i];
+		}
+	}
 
 	void RecieveAttackResult(Point pos, HitResult res);
 	HitResult SendAttackResult(Point pos);
 
 	void PrintShipData();
 	void PrintEnemyBoardData();
-
-private:
 	enum PlaceType
 	{
 		RANDOM,
 		CORNER,
 		CORNER_FAVORED,
-		EXPERIENCE,
+		PLACE_TYPE_NUM = 3,
 	};
+
+	//배 배치 AI를 위한 데이터
+	PlaceType m_PlaceType;
+
+private:
+	
 
 	//기본 플레이어 데이터
 	std::vector<Ship*> m_ShipList;
@@ -43,7 +58,8 @@ private:
 	//공격 AI를 위한 데이터
 	static const int SAVING_DATA_NUM = 4000;
 	static const int SIMULATE_NUM = 1000;
-	Direction m_AttackDir;
+	static const int CHANCE_NUM = 100;
+	ClientDirection m_AttackDir;
 	AIState m_AIState;
 	std::vector<Point> m_GameData[SAVING_DATA_NUM];
 	std::map<Point,HitResult> m_DestroyData;
@@ -55,22 +71,24 @@ private:
 	int m_GameDataBoard[Board::WIDTH][Board::HEIGHT];
 	int m_GameDataCount;
 
-	//배 배치 AI를 위한 데이터
-	PlaceType m_PlaceType;
+	
 
 	//공격 AI관련 함수
-	void GetPosByExperience(Point& pos);
+	Point GetPosByExperience();
 	void UpdateMonteCarloBoard();
 	void UpdateGameDataBoard();
 	void UpdateAIState(HitResult prevRes);
 	bool ChangeAttackDir();
 	
 	//배치 AI관련 함수
-	void GetPlace(Point& pos, Direction& dir);
-	void GetRandomPlace(Point& pos, Direction& dir);
-	void GetCornerPlace(Point& pos, Direction& dir);
-	void GetCornerFavoredPlace(Point& pos, Direction& dir);
+	void GetPlace(OUT Point* pos, OUT ClientDirection* dir);
+	void GetRandomPlace(OUT Point* pos, OUT ClientDirection* dir);
+	void GetCornerPlace(OUT Point* pos, OUT ClientDirection* dir);
+	void GetCornerFavoredPlace(OUT Point* pos, OUT ClientDirection* dir);
 
 	//AI처리를 위한 데이터를 외부로 부터 불러들여 읽는다.
 	void LoadData();
+
+	ShipData m_ShipData;
+	char mapdata[64];
 };

@@ -86,13 +86,13 @@ int Ship::GetMaxHP()
 
 void Ship::PrintData()
 {
-	printf("name : %s, MaxHP : %d, Pos :", m_Name.c_str(), m_MaxHP);
+	//printf("name : %s, MaxHP : %d, Pos :", m_Name.c_str(), m_MaxHP);
 
 	for (int i = 0; i < m_MaxHP; i++)
 	{
 		printf("%c%c ", m_Pos[i].x,m_Pos[i].y);
 	}
-	printf("\n");
+	//printf("\n");
 }
 
 int Ship::GetHP()

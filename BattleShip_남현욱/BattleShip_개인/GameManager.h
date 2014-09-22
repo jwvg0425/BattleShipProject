@@ -10,7 +10,8 @@ public:
 	static void ReleaseInstance();
 
 	void InitGame();
-	void RunGame();
+	void RunNetworkGame();
+	void RunSingleGame();
 	void Print();
 
 private:

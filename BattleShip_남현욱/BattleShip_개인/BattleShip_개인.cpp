@@ -10,7 +10,7 @@ int _tmain()
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
 	GameManager::GetInstance()->InitGame();
-	GameManager::GetInstance()->RunGame();
+	GameManager::GetInstance()->RunNetworkGame();
 	GameManager::ReleaseInstance();
 	getchar();
 	return 0;

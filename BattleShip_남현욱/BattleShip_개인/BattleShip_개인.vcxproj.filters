@@ -59,6 +59,9 @@
     <ClInclude Include="Macro.h">
       <Filter>Define</Filter>
     </ClInclude>
+    <ClInclude Include="Network.h" />
+    <ClInclude Include="PacketType.h" />
+    <ClInclude Include="ShipData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
