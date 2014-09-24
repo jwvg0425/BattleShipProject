@@ -24,7 +24,7 @@ void Board::Init()
 	}
 }
 
-BoardState Board::GetCellState(Point pos)
+BoardState Board::GetCellState(Point pos) const
 {
 	if (!IsInBoard(pos))
 	{
@@ -34,7 +34,7 @@ BoardState Board::GetCellState(Point pos)
 	return m_BoardStates[pos.x - Board::START_X][pos.y - Board::START_Y];
 }
 
-BoardState Board::GetCellState(char x, char y)
+BoardState Board::GetCellState(char x, char y) const
 {
 	Point pos;
 	pos.x = x;
@@ -45,6 +45,8 @@ BoardState Board::GetCellState(char x, char y)
 
 void Board::SetCellState(Point pos, BoardState state)
 {
+	_ASSERT(state != ERROR_STATE);
+
 	if (!IsInBoard(pos))
 	{
 		return;
@@ -62,7 +64,7 @@ void Board::SetCellState(char x, char y,BoardState state)
 	SetCellState(pos, state);
 }
 
-bool Board::IsInBoard(Point pos)
+bool Board::IsInBoard(Point pos) const
 {
 	if (pos.y < START_Y + HEIGHT && pos.y >= START_Y &&
 		pos.x >= START_X && pos.x < START_X + WIDTH)
@@ -73,7 +75,7 @@ bool Board::IsInBoard(Point pos)
 	return false;
 }
 
-bool Board::IsInBoard(char x, char y)
+bool Board::IsInBoard(char x, char y) const
 {
 	Point pos = Point(x, y);
 
@@ -134,8 +136,10 @@ void Board::Print()
 
 int Board::GetAroundNoneStateNum(Point pos)
 {
+	_ASSERT(IsInBoard(pos));
+
 	Point around;
-	int aloneGrade = 0;
+	int AroundNoneStateNum = 0;
 
 	for (ClientDirection dir = ClientDirection::BEGIN; dir < ClientDirection::END; dir++)
 	{
@@ -144,10 +148,10 @@ int Board::GetAroundNoneStateNum(Point pos)
 		if (GetCellState(around) == NONE_STATE ||
 			GetCellState(around) == ERROR_STATE)
 		{
-			aloneGrade++;
+			AroundNoneStateNum++;
 		}
 	}
-	return aloneGrade;
+	return AroundNoneStateNum;
 }
 
 int Board::GetAroundNoneStateNum(char x, char y)
@@ -165,6 +169,9 @@ void Board::UpdateCellData(std::map<Point, HitResult>& destroyDataList, int* num
 
 int Board::GetHitSize(Point pos, ClientDirection dir)
 {
+	_ASSERT(IsInBoard(pos));
+	_ASSERT(dir >= ClientDirection::BEGIN&&dir < ClientDirection::END);
+
 	int size = 0;
 
 	while (GetCellState(pos) == HIT_STATE)
@@ -185,9 +192,12 @@ int Board::GetHitSize(char x, char y, ClientDirection dir)
 
 int Board::GetMaxHitSize(Point pos, ClientDirection dir)
 {
+	_ASSERT(dir >= ClientDirection::BEGIN&&dir < ClientDirection::END);
+	_ASSERT(IsInBoard(pos));
+
 	int size;
 
-	size = GetHitSize(pos, dir) + GetHitSize(pos, ~dir) - 1;
+	size = GetHitSize(pos, dir) + GetHitSize(pos, dir.GetReverseDir()) - 1;
 
 	return size;
 }
@@ -201,6 +211,9 @@ int Board::GetMaxHitSize(char x, char y, ClientDirection dir)
 
 int Board::GetNoneSize(Point pos, ClientDirection dir)
 {
+	_ASSERT(dir >= ClientDirection::BEGIN&&dir < ClientDirection::END);
+	_ASSERT(IsInBoard(pos));
+
 	int size = 0;
 
 	pos = pos.ChangeByDir(dir);
@@ -221,6 +234,8 @@ int Board::GetNoneSize(char x, char y, ClientDirection dir)
 
 int Board::GetPossibleAttackRange(Point pos)
 {
+	_ASSERT(IsInBoard(pos));
+
 	int maxSize = 0;
 
 	for (ClientDirection dir = ClientDirection::DOWN; dir <= ClientDirection::RIGHT; dir++)
@@ -257,6 +272,9 @@ int Board::GetPossibleAttackRange(char x, char y)
 
 bool Board::IsValidAttackStartPos(Point pos,int* numOfEnemyShips)
 {
+	_ASSERT(IsInBoard(pos));
+	_ASSERT(numOfEnemyShips!=nullptr);
+
 	int size = 0;
 
 	for (int i = DESTROYER; i > AIRCRAFT; i--)
@@ -285,6 +303,9 @@ bool Board::IsValidAttackStartPos(char x, char y, int* numOfEnemyShips)
 
 bool Board::IsValidPlace(Point pos, ClientDirection dir, int length)
 {
+	_ASSERT(IsInBoard(pos));
+	_ASSERT(dir >= ClientDirection::BEGIN&&dir < ClientDirection::END);
+
 	int dx = 0, dy = 0;
 
 	dir.GetDeltaValue(dx, dy);
@@ -361,6 +382,8 @@ bool Board::IsValidAttackPos(char x, char y)
 
 void Board::UpdateDestroyCell(std::map<Point, HitResult>& destroyDataList)
 {
+	_ASSERT(&destroyDataList != nullptr);
+
 	//배가 파괴되었으나 파괴위치를 확정시키치 못한 게 남아있으면 해당 배의 위치를 확정시킬 수 있는지 확인해보고 가능하면 확정시킨다.
 
 	while (!destroyDataList.empty())
@@ -436,6 +459,9 @@ void Board::UpdateDestroyCell(std::map<Point, HitResult>& destroyDataList)
 
 void Board::UpdateInvaildShipCell(int* numOfEnemyShips)
 {
+
+	_ASSERT(numOfEnemyShips!=nullptr);
+
 	for (int x = 0; x < WIDTH; x++)
 	{
 		for (int y = 0; y < HEIGHT; y++)

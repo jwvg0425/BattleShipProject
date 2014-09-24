@@ -79,7 +79,7 @@ void Ship::AddPosition(Point pos)
 	}
 }
 
-int Ship::GetMaxHP()
+int Ship::GetMaxHP() const
 {
 	return m_MaxHP;
 }
@@ -95,12 +95,12 @@ void Ship::PrintData()
 	printf("\n");
 }
 
-int Ship::GetHP()
+int Ship::GetHP() const
 {
 	return m_HP;
 }
 
-ClientShipType Ship::GetType()
+ClientShipType Ship::GetType() const
 {
 	return m_Type;
 }

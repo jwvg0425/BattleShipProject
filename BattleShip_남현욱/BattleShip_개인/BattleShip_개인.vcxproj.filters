@@ -62,6 +62,9 @@
     <ClInclude Include="Network.h" />
     <ClInclude Include="PacketType.h" />
     <ClInclude Include="ShipData.h" />
+    <ClInclude Include="Direction.h">
+      <Filter>Define</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -98,6 +101,9 @@
     </ClCompile>
     <ClCompile Include="PlayerPlaceAI.cpp">
       <Filter>GameObject\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Direction.cpp">
+      <Filter>Define</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

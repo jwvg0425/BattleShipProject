@@ -92,6 +92,7 @@ void Player::Init(bool isReset)
 HitResult Player::SendAttackResult(Point pos)
 {
 	_ASSERT(pos.x != 0 && pos.y != 0);
+	
 	HitResult res;
 
 	for (auto& ship : m_ShipList)
@@ -108,6 +109,9 @@ HitResult Player::SendAttackResult(Point pos)
 
 void Player::RecieveAttackResult(Point pos, HitResult res)
 {
+	_ASSERT(pos.x != 0 && pos.y != 0);
+	_ASSERT(res != ERROR_RESULT);
+
 	if (res == MISS)
 	{
 		m_EnemyBoard->SetCellState(pos, MISS_STATE);
@@ -188,8 +192,15 @@ ShipData& Player::GetShipPosList()
 	return m_ShipData;
 }
 
-void Player::GetMapData(char* mapData_)
+void Player::GetMapData(char* mapData_) const
 {
+	_ASSERT(mapData_ != nullptr);
+
+	if (mapData_ == nullptr)
+	{
+		return;
+	}
+
 	for (int i = 0; i < Board::WIDTH*Board::HEIGHT; i++)
 	{
 		mapData_[i] = mapdata[i];

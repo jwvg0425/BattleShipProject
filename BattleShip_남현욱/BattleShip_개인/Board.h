@@ -16,15 +16,15 @@ public:
 	void Init();
 
 	//보드 정보 설정 및 얻어오기
-	BoardState GetCellState(Point pos);
-	BoardState GetCellState(char x, char y);
+	BoardState GetCellState(Point pos) const;
+	BoardState GetCellState(char x, char y) const;
 	void SetCellState(Point pos, BoardState state);
 	void SetCellState(char x, char y, BoardState state);
 
 	void Print();
 
-	bool IsInBoard(Point pos);
-	bool IsInBoard(char x, char y);
+	bool IsInBoard(Point pos) const;
+	bool IsInBoard(char x, char y) const;
 	
 	//주변 4칸에 존재하는 NONE_STATE인 cell의 개수를 돌려준다. 
 	int GetAroundNoneStateNum(Point pos);

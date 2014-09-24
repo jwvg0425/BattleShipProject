@@ -19,7 +19,7 @@ public:
 
 	Point GetNextAttackPos();
 	ShipData& GetShipPosList();
-	void GetMapData(char* mapData_);
+	void GetMapData(char* mapData_) const;
 	
 
 	void RecieveAttackResult(Point pos, HitResult res);
@@ -27,6 +27,11 @@ public:
 
 	void PrintShipData();
 	void PrintEnemyBoardData();
+
+	//배 배치 타입.
+	//RANDOM = 완전 랜덤
+	//CORNER = 4 코너에 각각 하나씩 배치, destroyer 하나는 랜덤 배치
+	//CORNER_FAVORED = 왼쪽 아래 코너 부근에 집중적으로 배치
 	enum PlaceType
 	{
 		RANDOM,

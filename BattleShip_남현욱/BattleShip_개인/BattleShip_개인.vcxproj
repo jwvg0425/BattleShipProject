@@ -85,6 +85,7 @@
     <ClInclude Include="Cruiser.h" />
     <ClInclude Include="DataType.h" />
     <ClInclude Include="Destroyer.h" />
+    <ClInclude Include="Direction.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="Macro.h" />
     <ClInclude Include="Network.h" />
@@ -104,6 +105,7 @@
     <ClCompile Include="Cruiser.cpp" />
     <ClCompile Include="DataType.cpp" />
     <ClCompile Include="Destroyer.cpp" />
+    <ClCompile Include="Direction.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerAttackAI.cpp" />

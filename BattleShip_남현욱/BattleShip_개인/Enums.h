@@ -11,6 +11,7 @@ enum HitResult
 	DESTROY_BATTLESHIP = 4,
 	DESTROY_CRUISER = 5,
 	DESTROY_DESTROYER = 6 ,
+	ERROR_RESULT = -1,
 };
 
 enum BoardState
