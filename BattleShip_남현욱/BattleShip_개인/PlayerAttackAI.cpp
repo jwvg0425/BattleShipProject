@@ -53,7 +53,7 @@ void Player::UpdateAIState(HitResult prevRes)
 
 		//다른 hit인 위치가 있으면 거기서부터 다시 target 과정을 수행한다. 없으면 hunt.
 		Point hitPos = m_EnemyBoard->GetHitCell(true);
-		if (hitPos.x != 0)
+		if (hitPos != Point::GetNullPoint())
 		{
 			m_AIState = TARGET;
 			prevRes = HIT;
@@ -61,7 +61,7 @@ void Player::UpdateAIState(HitResult prevRes)
 
 			do
 			{
-				if (hitPos.x == 0)
+				if (hitPos != Point::GetNullPoint())
 				{
 					prevRes = MISS;
 					m_AIState = HUNT;
@@ -102,12 +102,14 @@ void Player::UpdateAIState(HitResult prevRes)
 			nextAttackPoint = m_AttackStartPos;
 			m_PrevAttackPos = m_AttackStartPos;
 
+			//시작점 기준으로 더이상 공격할 곳이 없다면 HUNT로 돌아간다.
 			if (!ChangeAttackDir())
 			{
 				m_AIState = HUNT;
 			}
 			else
 			{
+				//공격하던 방향의 반대 방향을 우선적으로 공격한다.
 				nextAttackDir = nextAttackDir.GetReverseDir();
 				nextAttackPoint = nextAttackPoint.ChangeByDir(nextAttackDir);
 				if (m_EnemyBoard->IsValidAttackPos(nextAttackPoint))
@@ -116,6 +118,7 @@ void Player::UpdateAIState(HitResult prevRes)
 				}
 			}
 		}
+		//공격 성공시 다음 공격 위치가 공격 가능하면 공격하고, 아니라면 다른 공격 위치로 바꾼다.
 		else if (prevRes == HIT)
 		{
 			Point nextAttackPoint = m_PrevAttackPos;
@@ -123,8 +126,10 @@ void Player::UpdateAIState(HitResult prevRes)
 			nextAttackPoint = nextAttackPoint.ChangeByDir(nextAttackDir);
 			m_HitCount++;
 
+			//다음 위치가 공격 불가능한 경우
 			if (!m_EnemyBoard->IsValidAttackPos(nextAttackPoint))
 			{
+				//MISS인 경우와 마찬가지로 공격 시작점에서 반대방향 우선으로 다른 공격 방향을 탐색한다.
 				m_PrevAttackPos = m_AttackStartPos;
 				nextAttackPoint = m_AttackStartPos;
 				nextAttackDir = m_AttackDir.GetReverseDir();
@@ -189,11 +194,11 @@ void Player::UpdateMonteCarloBoard()
 			}
 		}
 
-		for (int k = 0; k < ClientShipData::TYPE_NUM; k++)
+		for (int shipType = 0; shipType < ClientShipData::TYPE_NUM; shipType++)
 		{
-			for (int t = 0; t < m_NumOfEnemyShips[k]; t++)
+			for (int shipNum= 0; shipNum < m_NumOfEnemyShips[shipType]; shipNum++)
 			{
-				int size = ClientShipData::GetSize((ClientShipType)k);
+				int size = ClientShipData::GetSize((ClientShipType)shipType);
 				count = 0;
 
 				do
@@ -275,8 +280,10 @@ Point Player::GetPosByExperience()
 			int factor1 = m_MonteCarloBoard[x][y];
 			int factor2 = m_GameDataBoard[x][y];
 
+			//게임 데이터가 하나도 없는 경우 모든 value가 0이 되는 것을 방지
 			if (factor2 == 0)
 				factor2 = 1;
+
 			int value = factor1 * factor2;
 
 			if (value>maxValue &&

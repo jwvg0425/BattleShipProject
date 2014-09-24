@@ -71,3 +71,8 @@ Point Point::ChangeByDir(ClientDirection dir)
 
 	return newPoint;
 }
+
+Point Point::GetNullPoint()
+{
+	return Point(0, 0);
+}

@@ -73,10 +73,16 @@ private:
 	
 
 	//공격 AI관련 함수
+
+	//경험을 반영하여 다음 공격 좌표를 계산, 가져온다.
 	Point GetPosByExperience();
+	//몬테 카를로 방법을 이용하여 경우의 수를 계산, 저장한다.
 	void UpdateMonteCarloBoard();
+	//내 게임 데이터 중 현 상황에 맞는 게임 데이터로 갱신하여 경우의 수를 저장한다.
 	void UpdateGameDataBoard();
+	//AI상태를 갱신한다
 	void UpdateAIState(HitResult prevRes);
+	//공격 시작점을 기준으로 공격 방향을 바꿀 수 있다면 바꾸고, 못 바꾼다면 false를 리턴한다.
 	bool ChangeAttackDir();
 	
 	//배치 AI관련 함수

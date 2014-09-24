@@ -10,6 +10,8 @@
 
 Player::Player()
 {
+	m_ShipList.reserve(5);
+
 	m_ShipList.push_back(new AirCraft());
 	m_ShipList.push_back(new BattleShip());
 	m_ShipList.push_back(new Cruiser());
@@ -91,7 +93,7 @@ void Player::Init(bool isReset)
 
 HitResult Player::SendAttackResult(Point pos)
 {
-	_ASSERT(pos.x != 0 && pos.y != 0);
+	_ASSERT(pos != Point::GetNullPoint());
 	
 	HitResult res;
 
@@ -109,7 +111,7 @@ HitResult Player::SendAttackResult(Point pos)
 
 void Player::RecieveAttackResult(Point pos, HitResult res)
 {
-	_ASSERT(pos.x != 0 && pos.y != 0);
+	_ASSERT(pos != Point::GetNullPoint());
 	_ASSERT(res != ERROR_RESULT);
 
 	if (res == MISS)
@@ -183,7 +185,7 @@ void Player::LoadData()
 			m_GameData[m_GameCount].push_back(Point(buffer[i * 3], buffer[i * 3 + 1]));
 		}
 	}
-
+	
 	fclose(file);
 }
 

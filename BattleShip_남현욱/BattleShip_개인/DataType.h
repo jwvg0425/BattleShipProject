@@ -22,12 +22,19 @@ struct Point
 		return (pos.x == this->x && pos.y == this->y);
 	}
 
+	bool operator != (const Point& pos) const
+	{
+		return !(*this == pos);
+	}
+
 	bool operator <(const Point& pos) const
 	{
 		return (this->x + this->y) < (pos.x + pos.y);
 	}
 
 	Point ChangeByDir(ClientDirection dir);
+
+	static Point GetNullPoint();
 };
 
 //Ship에 괸련된 데이터를 저장하는 구조체다.
