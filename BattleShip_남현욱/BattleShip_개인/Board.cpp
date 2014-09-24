@@ -132,7 +132,7 @@ void Board::Print()
 }
 
 
-int Board::GetAloneGrade(Point pos)
+int Board::GetAroundNoneStateNum(Point pos)
 {
 	Point around;
 	int aloneGrade = 0;
@@ -150,11 +150,11 @@ int Board::GetAloneGrade(Point pos)
 	return aloneGrade;
 }
 
-int Board::GetAloneGrade(char x, char y)
+int Board::GetAroundNoneStateNum(char x, char y)
 {
 	Point pos = Point(x, y);
 
-	return GetAloneGrade(pos);
+	return GetAroundNoneStateNum(pos);
 }
 
 void Board::UpdateCellData(std::map<Point, HitResult>& destroyDataList, int* numOfEnemyShips)

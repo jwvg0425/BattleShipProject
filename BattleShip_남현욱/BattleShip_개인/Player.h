@@ -38,7 +38,6 @@ public:
 	
 
 private:
-	
 
 	//기본 플레이어 데이터
 	std::vector<Ship*> m_ShipList;

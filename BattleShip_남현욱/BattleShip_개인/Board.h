@@ -27,8 +27,8 @@ public:
 	bool IsInBoard(char x, char y);
 	
 	//주변 4칸에 존재하는 NONE_STATE인 cell의 개수를 돌려준다. 
-	int GetAloneGrade(Point pos);
-	int GetAloneGrade(char x, char y);
+	int GetAroundNoneStateNum(Point pos);
+	int GetAroundNoneStateNum(char x, char y);
 
 	//전체 cell의 데이터를 현재 진행 상황에 맞게 갱신한다.
 	void UpdateCellData(std::map<Point, HitResult>& destroyDataList, int* numOfEnemyShips);
@@ -68,7 +68,5 @@ protected:
 	BoardState m_BoardStates[Board::WIDTH][Board::HEIGHT];
 	void UpdateDestroyCell(std::map<Point, HitResult>& destroyDataList);
 	void UpdateInvaildShipCell(int* numOfEnemyShips);
-
-
 };
 

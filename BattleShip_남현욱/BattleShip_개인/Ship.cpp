@@ -100,3 +100,8 @@ int Ship::GetHP()
 	return m_HP;
 }
 
+ClientShipType Ship::GetType()
+{
+	return m_Type;
+}
+
