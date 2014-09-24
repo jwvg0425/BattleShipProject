@@ -64,8 +64,8 @@ void Board::SetCellState(char x, char y,BoardState state)
 
 bool Board::IsInBoard(Point pos)
 {
-	if (pos.y < Board::START_Y + HEIGHT && pos.y >= Board::START_Y &&
-		pos.x >= Board::START_X && pos.x < Board::START_X + WIDTH)
+	if (pos.y < START_Y + HEIGHT && pos.y >= START_Y &&
+		pos.x >= START_X && pos.x < START_X + WIDTH)
 	{
 		return true;
 	}
@@ -87,7 +87,7 @@ void Board::Print()
 	printf("   ");
 	for (int x = 0; x < WIDTH; x++)
 	{
-		printf("%-2c", Board::START_X + x);
+		printf("%-2c", START_X + x);
 	}
 	printf("\n");
 

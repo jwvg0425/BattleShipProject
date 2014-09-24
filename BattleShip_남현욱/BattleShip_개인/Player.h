@@ -18,16 +18,9 @@ public:
 	bool IsDead();
 
 	Point GetNextAttackPos();
-	ShipData& GetShipPosList(){
-		return m_ShipData;
-	}
-	void GetMapData(char* mapData_)
-	{
-		for (int i = 0; i < 64; i++)
-		{
-			mapData_[i] = mapdata[i];
-		}
-	}
+	ShipData& GetShipPosList();
+	void GetMapData(char* mapData_);
+	
 
 	void RecieveAttackResult(Point pos, HitResult res);
 	HitResult SendAttackResult(Point pos);
@@ -42,8 +35,7 @@ public:
 		PLACE_TYPE_NUM = 3,
 	};
 
-	//배 배치 AI를 위한 데이터
-	PlaceType m_PlaceType;
+	
 
 private:
 	
@@ -70,6 +62,9 @@ private:
 	int m_MonteCarloBoard[Board::WIDTH][Board::HEIGHT];
 	int m_GameDataBoard[Board::WIDTH][Board::HEIGHT];
 	int m_GameDataCount;
+
+	//배 배치 AI를 위한 데이터
+	PlaceType m_PlaceType;
 
 	
 

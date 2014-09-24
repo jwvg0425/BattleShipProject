@@ -86,6 +86,7 @@ void Player::UpdateAIState(HitResult prevRes)
 			m_HitCount = 0;
 
 			m_AIState = TARGET;
+			ChangeAttackDir();
 		}
 		break;
 	case TARGET:

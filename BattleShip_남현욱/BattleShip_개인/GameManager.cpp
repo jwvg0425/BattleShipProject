@@ -20,8 +20,8 @@ GameManager::GameManager()
 
 GameManager::~GameManager()
 {
-	delete m_Player1;
-	delete m_Player2;
+	SAFE_DELETE(m_Player1);
+	SAFE_DELETE(m_Player2);
 }
 
 GameManager* GameManager::GetInstance()
@@ -36,11 +36,7 @@ GameManager* GameManager::GetInstance()
 
 void GameManager::ReleaseInstance()
 {
-	if (m_Instance != nullptr)
-	{
-		delete m_Instance;
-		m_Instance = nullptr;
-	}
+	SAFE_DELETE(m_Instance);
 }
 
 void GameManager::InitGame()

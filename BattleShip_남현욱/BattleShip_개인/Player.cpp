@@ -30,13 +30,13 @@ Player::~Player()
 {
 	for (auto& ship : m_ShipList)
 	{
-		delete ship;
+		SAFE_DELETE(ship);
 	}
 	
 	m_ShipList.clear();
 	m_DestroyData.clear();
-	delete m_MyBoard;
-	delete m_EnemyBoard;
+	SAFE_DELETE(m_MyBoard);
+	SAFE_DELETE(m_EnemyBoard);
 	
 	for (int i = 0; i < SAVING_DATA_NUM; i++)
 	{
@@ -156,23 +156,42 @@ void Player::PrintEnemyBoardData()
 
 void Player::LoadData()
 {
-	FILE* file = fopen("data.txt", "r");
-	char buffer[256];
+	FILE* file = fopen(DATA_FILE_NAME, "r");
+	char buffer[BUF_SIZE];
 	
 	if (file == nullptr)
 	{
 		return;
 	}
 
-	while (fgets(buffer, 256, file) != NULL)
+	while (fgets(buffer, BUF_SIZE, file) != NULL)
 	{
 		m_GameCount++;
 
-		for (int j = 0; j < 16; j++)
+		int total_turn = 0;
+
+		for (int idx = 0; idx < ClientShipData::TYPE_NUM; idx++)
 		{
-			m_GameData[m_GameCount].push_back(Point(buffer[j*3], buffer[j*3+1]));
+			total_turn += ClientShipData::GetSize((ClientShipType)idx);
+		}
+		for (int i = 0; i < total_turn; i++)
+		{
+			m_GameData[m_GameCount].push_back(Point(buffer[i * 3], buffer[i * 3 + 1]));
 		}
 	}
 
 	fclose(file);
+}
+
+ShipData& Player::GetShipPosList()
+{
+	return m_ShipData;
+}
+
+void Player::GetMapData(char* mapData_)
+{
+	for (int i = 0; i < Board::WIDTH*Board::HEIGHT; i++)
+	{
+		mapData_[i] = mapdata[i];
+	}
 }
